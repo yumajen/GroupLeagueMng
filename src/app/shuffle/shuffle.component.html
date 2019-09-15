@@ -1,0 +1,44 @@
+<h2>リーグ表作成条件</h2>
+<div class="condition-area">
+    <h3>リーグ数の設定条件</h3>
+    <div class="cond-option">
+        <input type="radio" name="groups" checked>1グループ内の上限人数を設定して参加者を振り分ける
+        <div class="cond-form">
+            <label>上限人数：</label>
+            <input type="text">
+        </div>
+    </div>
+    <div class="cond-option">
+        <input type="radio" name="groups">グループ数を設定を設定して参加者を振り分ける
+        <div class="cond-form">
+            <label>グループ数：</label>
+            <input type="text">
+        </div>
+    </div>
+</div>
+<div class="condition-area">
+    <h3>シャッフルの条件</h3>
+    <div class="cond-option">
+        <input type="radio" name="shuffle" checked>手動シャッフル
+        <div class="cond-form">
+            <button>シャッフル</button>
+            <span>0回</span>
+        </div>
+    </div>
+    <div class="cond-option">
+        <input type="radio" name="shuffle">自動シャッフル
+        <div class="cond-form">
+            <button>シャッフル</button>
+        </div>
+    </div>
+</div>
+<div>
+    <a href="league.html"><button>リーグ表を作成</button></a>
+    <a href="regist_players.html"><button>キャンセル</button></a>
+</div>
+<div class="discription">
+    <p>リーグ戦のグループは<span class="red">最大10個</span>作成することができます。<br>
+        1グループあたりの最大参加人数は<span class="red">10人</span>です。<br>
+        自動シャッフルの場合は、ランダムで1〜10回シャッフルされます。
+    </p>
+</div>

@@ -1,0 +1,34 @@
+/* 共通 */
+button {
+  border-radius: 5px;
+  font-weight: bold;
+  outline: none;
+}
+button:hover {
+  cursor: pointer;
+}
+
+/* 条件入力エリア */
+.condition-area {
+  border: solid grey 1px;
+  width: 50%;
+  margin-bottom: 20px;
+}
+.cond-option {
+  margin-left: 10px;
+  margin-bottom: 10px;
+}
+.cond-form {
+  margin-left: 20px;
+}
+
+/* 説明 */
+.discription {
+  font-size: 13px;
+  color: gray;
+}
+
+span.red {
+  color: red;
+  font-weight: bold;
+}

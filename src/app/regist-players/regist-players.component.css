@@ -1,0 +1,34 @@
+/* 共通 */
+button {
+  border-radius: 5px;
+  font-weight: bold;
+  outline: none;
+}
+button:hover {
+  cursor: pointer;
+}
+
+/* 参加者リスト */
+/* .block {
+  margin-left: 20px;
+} */
+.register-area thead, tbody {
+  display: block;
+}
+.register-area tbody {
+  overflow-x: hidden;
+  overflow-y: scroll;
+  height: 400px;
+}
+th, td {
+  width: 150px;
+}
+td {
+  height: 30px;
+}
+.delete-column {
+  font-size: 15px;
+}
+.delete-column:hover {
+  cursor: pointer;
+}
