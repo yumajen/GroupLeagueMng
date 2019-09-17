@@ -9,9 +9,9 @@ button:hover {
 }
 
 /* 参加者リスト */
-/* .block {
-  margin-left: 20px;
-} */
+table {
+  background-color: #d3d3d3;
+}
 .register-area thead, tbody {
   display: block;
 }
@@ -22,6 +22,7 @@ button:hover {
 }
 th, td {
   width: 150px;
+  background-color: #ffffff;
 }
 td {
   height: 30px;
@@ -31,4 +32,13 @@ td {
 }
 .delete-column:hover {
   cursor: pointer;
+}
+td input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  font-size: 12px;
+}
+td input:focus {
+  background-color: #e0ffe0;
 }
