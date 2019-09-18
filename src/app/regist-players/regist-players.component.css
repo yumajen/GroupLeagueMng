@@ -38,6 +38,7 @@ td input {
   height: 100%;
   border: none;
   font-size: 12px;
+  text-overflow: ellipsis;
 }
 td input:focus {
   background-color: #e0ffe0;

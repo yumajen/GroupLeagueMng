@@ -8,6 +8,9 @@ import { ShuffleComponent } from './shuffle/shuffle.component';
 import { LeagueComponent } from './league/league.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconModule } from '@angular/material/icon';
+import { HttpClientModule } from '@angular/common/http';
+import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
+import { InMemoryPlayerDataService } from './in-memory-player-data.service';
 
 
 @NgModule({
@@ -21,9 +24,13 @@ import { MatIconModule } from '@angular/material/icon';
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
-    MatIconModule
+    MatIconModule,
+    HttpClientModule,
+    HttpClientInMemoryWebApiModule.forRoot(
+      InMemoryPlayerDataService, { dataEncapsulation: false }
+    )
   ],
-  providers: [],
+  providers: [InMemoryPlayerDataService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
