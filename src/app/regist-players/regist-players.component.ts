@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Player } from '../player';
+import { PlayersService } from '../players.service';
 
 
 @Component({
@@ -12,13 +13,16 @@ export class RegistPlayersComponent implements OnInit {
   player: Player[] = Player.players;
   inputInfomations: any[]; // 入力されたプレイヤー情報（DB登録前）
 
-  constructor() {
+  constructor(
+    private playersService: PlayersService
+  ) {
     this.inputInfomations = new Array(
       { id: 1, name: '', otherItems: {} }
     );
   }
 
   ngOnInit() {
+    this.getPlayers();
   }
 
   getOtherItems(id: number): any {
@@ -54,6 +58,27 @@ export class RegistPlayersComponent implements OnInit {
   addItem(additionalKey: string): void {
     this.inputInfomations.forEach((inputInfomation) => {
       inputInfomation['otherItems'][additionalKey] = '';
+    });
+  }
+
+  getPlayers(): void {
+    this.playersService.getPlayers().subscribe(
+      (players) => {
+        console.log(players);
+      }
+    );
+  }
+
+  registPlayers(): void {
+    this.inputInfomations.forEach((inputPlayer) => {
+      this.playersService.registPlayer(inputPlayer as Player)
+        .subscribe(
+          (player) => {
+            // 成功時の処理
+            // console.log(player);
+            this.getPlayers();
+          }
+        );
     });
   }
 }
