@@ -5,8 +5,8 @@
             <tr>
                 <th>No.</th>
                 <th>名前</th>
-                <th *ngFor="let otherItem of getOtherItems(1)">
-                    {{otherItem[0]}}
+                <th *ngFor="let otherItemLabel of otherItemLabels">
+                    {{otherItemLabel}}
                 </th>
                 <th>
                     <button>まとめてチェック</button>
@@ -14,7 +14,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let inputInfomation of inputInfomations">
+            <tr *ngFor="let inputInfomation of inputInformations">
                 <td>{{inputInfomation.id}}</td>
                 <td>
                     <input type="text" value={{inputInfomation.name}} #element
@@ -24,18 +24,18 @@
                     <input type="text" value={{otherItem[1]}} #element
                         (blur)="addInputElement(inputInfomation.id, otherItem[0], element.value)">
                 </td>
-                <td><input type="checkbox"></td>
+                <td><input type="checkbox" (change)="switchDeleteTaeget(inputInfomation)"></td>
             </tr>
         </tbody>
     </table>
-    <button (click)="addInputForm()">+</button>
+    <button (click)=" addInputForm()">+</button>
 </div>
 <div class="block">
     <input type="text" #additionalItem>
     <button (click)="addItem(additionalItem.value); additionalItem.value = ''">項目追加</button>
 </div>
 <div class="block">
-    <button>削除</button>
+    <button (click)="deleteInputInformations()">削除</button>
     <!-- <button>棄権</button> -->
     <button (click)="registPlayers()">完了</button>
 </div>

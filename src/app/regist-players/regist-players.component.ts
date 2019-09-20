@@ -11,14 +11,18 @@ import { PlayersService } from '../players.service';
 export class RegistPlayersComponent implements OnInit {
 
   player: Player[] = Player.players;
-  inputInfomations: any[]; // 入力されたプレイヤー情報（DB登録前）
+  inputInformations: any[]; // 入力されたプレイヤー情報（DB登録前）
+  checkedInformations: number[]; // チェックボックスが有効となっているプレイヤー情報 
+  otherItemLabels: string[]; // 任意追加項目名
 
   constructor(
     private playersService: PlayersService
   ) {
-    this.inputInfomations = new Array(
+    this.inputInformations = new Array(
       { id: 1, name: '', otherItems: {} }
     );
+    this.checkedInformations = [];
+    this.otherItemLabels = [];
   }
 
   ngOnInit() {
@@ -27,19 +31,19 @@ export class RegistPlayersComponent implements OnInit {
 
   getOtherItems(id: number): any {
     let index = Number(id) - 1;
-    return Object.entries(this.inputInfomations[index].otherItems);
+    return Object.entries(this.inputInformations[index].otherItems);
   }
 
   addInputForm(): void {
-    let index = this.inputInfomations.length + 1
+    let index = this.inputInformations.length + 1
     let otherItems = {}
 
-    // 追加項目分のフォームはindex=0のotherItemsのkeyを元に生成する 
-    Object.keys(this.inputInfomations[0].otherItems).forEach((key) => {
-      otherItems[key] = '';
+    // 追加項目分のフォームはotherItemLabels配列の要素を元に生成する 
+    this.otherItemLabels.forEach((key) => {
+      otherItems['key'] = '';
     });
 
-    this.inputInfomations.push(
+    this.inputInformations.push(
       { id: index, name: '', otherItems: otherItems }
     );
   }
@@ -48,17 +52,19 @@ export class RegistPlayersComponent implements OnInit {
     let index = id - 1;
     if (key == 'name') {
       // keyがnameの場合はそのままvalueを格納する
-      this.inputInfomations[index][key] = value;
+      this.inputInformations[index][key] = value;
     } else {
       // keyがotherItemsの場合は、さらに下層のkeyにvalueを格納する
-      this.inputInfomations[index]['otherItems'][key] = value;
+      this.inputInformations[index]['otherItems'][key] = value;
     }
   }
 
   addItem(additionalKey: string): void {
-    this.inputInfomations.forEach((inputInfomation) => {
+    this.inputInformations.forEach((inputInfomation) => {
       inputInfomation['otherItems'][additionalKey] = '';
     });
+
+    this.otherItemLabels.push(additionalKey);
   }
 
   getPlayers(): void {
@@ -70,15 +76,37 @@ export class RegistPlayersComponent implements OnInit {
   }
 
   registPlayers(): void {
-    this.inputInfomations.forEach((inputPlayer) => {
+    this.inputInformations.forEach((inputPlayer) => {
       this.playersService.registPlayer(inputPlayer as Player)
         .subscribe(
           (player) => {
             // 成功時の処理
-            // console.log(player);
-            this.getPlayers();
+            console.log(player);
           }
         );
     });
   }
+
+  switchDeleteTaeget(inputInformations: any): void {
+    if (this.checkedInformations.includes(inputInformations)) {
+      this.checkedInformations.splice(this.checkedInformations.indexOf(inputInformations), 1)
+    } else {
+      this.checkedInformations.push(inputInformations);
+    }
+  }
+
+  deleteInputInformations(): void {
+    this.inputInformations = this.inputInformations.filter((inputInformation) => {
+      return this.checkedInformations.indexOf(inputInformation) == -1;
+    });
+
+    this.reNumberingToInputInformations();
+  }
+
+  reNumberingToInputInformations(): void {
+    this.inputInformations.forEach((inputInformation, index) => {
+      inputInformation['id'] = index + 1;
+    });
+  }
+
 }
