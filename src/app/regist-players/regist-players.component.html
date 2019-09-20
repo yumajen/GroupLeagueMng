@@ -5,8 +5,10 @@
             <tr>
                 <th>No.</th>
                 <th>名前</th>
-                <th *ngFor="let otherItemLabel of otherItemLabels">
+                <th *ngFor="let otherItemLabel of otherItemLabels; let i = index">
                     {{otherItemLabel}}
+                    <mat-icon class="delete-column" (click)="deleteAdditionalColumn(otherItemLabel, i)">
+                        cancel_presentation</mat-icon>
                 </th>
                 <th>
                     <button>まとめてチェック</button>
