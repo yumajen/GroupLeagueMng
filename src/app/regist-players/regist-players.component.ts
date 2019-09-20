@@ -40,7 +40,7 @@ export class RegistPlayersComponent implements OnInit {
 
     // 追加項目分のフォームはotherItemLabels配列の要素を元に生成する 
     this.otherItemLabels.forEach((key) => {
-      otherItems['key'] = '';
+      otherItems[key] = '';
     });
 
     this.inputInformations.push(
@@ -106,6 +106,15 @@ export class RegistPlayersComponent implements OnInit {
   reNumberingToInputInformations(): void {
     this.inputInformations.forEach((inputInformation, index) => {
       inputInformation['id'] = index + 1;
+    });
+  }
+
+  deleteAdditionalColumn(key: string, index: number): void {
+    // 任意追加項目配列から対象の項目名を削除
+    this.otherItemLabels.splice(index, 1);
+    // プレイヤー入力情報から対象項目の値を削除
+    this.inputInformations.forEach((inputInformation) => {
+      delete inputInformation['otherItems'][key];
     });
   }
 
