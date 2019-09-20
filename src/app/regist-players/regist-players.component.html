@@ -5,8 +5,8 @@
             <tr>
                 <th>No.</th>
                 <th>名前</th>
-                <th *ngFor="let otherItem of getOtherItems(1)">
-                    {{otherItem[0]}}
+                <th *ngFor="let otherItemLabel of otherItemLabels">
+                    {{otherItemLabel}}
                 </th>
                 <th>
                     <button>まとめてチェック</button>

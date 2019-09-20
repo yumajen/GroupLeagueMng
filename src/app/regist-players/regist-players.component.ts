@@ -13,6 +13,7 @@ export class RegistPlayersComponent implements OnInit {
   player: Player[] = Player.players;
   inputInformations: any[]; // 入力されたプレイヤー情報（DB登録前）
   checkedInformations: number[]; // チェックボックスが有効となっているプレイヤー情報 
+  otherItemLabels: string[]; // 任意追加項目名
 
   constructor(
     private playersService: PlayersService
@@ -21,6 +22,7 @@ export class RegistPlayersComponent implements OnInit {
       { id: 1, name: '', otherItems: {} }
     );
     this.checkedInformations = [];
+    this.otherItemLabels = [];
   }
 
   ngOnInit() {
@@ -36,9 +38,9 @@ export class RegistPlayersComponent implements OnInit {
     let index = this.inputInformations.length + 1
     let otherItems = {}
 
-    // 追加項目分のフォームはindex=0のotherItemsのkeyを元に生成する 
-    Object.keys(this.inputInformations[0].otherItems).forEach((key) => {
-      otherItems[key] = '';
+    // 追加項目分のフォームはotherItemLabels配列の要素を元に生成する 
+    this.otherItemLabels.forEach((key) => {
+      otherItems['key'] = '';
     });
 
     this.inputInformations.push(
@@ -61,6 +63,8 @@ export class RegistPlayersComponent implements OnInit {
     this.inputInformations.forEach((inputInfomation) => {
       inputInfomation['otherItems'][additionalKey] = '';
     });
+
+    this.otherItemLabels.push(additionalKey);
   }
 
   getPlayers(): void {
