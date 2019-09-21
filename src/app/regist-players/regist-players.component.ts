@@ -87,11 +87,11 @@ export class RegistPlayersComponent implements OnInit {
     });
   }
 
-  switchDeleteTaeget(inputInformations: any): void {
-    if (this.checkedInformations.includes(inputInformations)) {
-      this.checkedInformations.splice(this.checkedInformations.indexOf(inputInformations), 1)
+  switchDeleteTaeget(inputInformation: any): void {
+    if (this.checkedInformations.includes(inputInformation)) {
+      this.checkedInformations.splice(this.checkedInformations.indexOf(inputInformation), 1)
     } else {
-      this.checkedInformations.push(inputInformations);
+      this.checkedInformations.push(inputInformation);
     }
   }
 
