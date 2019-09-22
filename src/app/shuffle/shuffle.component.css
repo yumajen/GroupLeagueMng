@@ -7,19 +7,24 @@ button {
 button:hover {
   cursor: pointer;
 }
+h3 {
+  padding-left: 10px;
+}
 
 /* 条件入力エリア */
 .condition-area {
   border: solid grey 1px;
-  width: 50%;
+  width: 95%;
+  margin-left: auto;
+  margin-right: auto;
   margin-bottom: 20px;
 }
 .cond-option {
-  margin-left: 10px;
+  margin-left: 20px;
   margin-bottom: 10px;
 }
 .cond-form {
-  margin-left: 20px;
+  margin-left: 30px;
 }
 
 /* 説明 */

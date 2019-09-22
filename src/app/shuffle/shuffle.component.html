@@ -1,4 +1,5 @@
 <h2>リーグ表作成条件</h2>
+<p>現在の参加者は{{numberOfPlayers}}人です。</p>
 <div class="condition-area">
     <h3>リーグ数の設定条件</h3>
     <div class="cond-option">
@@ -33,8 +34,8 @@
     </div>
 </div>
 <div>
-    <a href="league.html"><button>リーグ表を作成</button></a>
-    <a href="regist_players.html"><button>キャンセル</button></a>
+    <button>リーグ表を作成</button>
+    <button mat-raised-button mat-dialog-close="cancel">キャンセル</button>
 </div>
 <div class="discription">
     <p>リーグ戦のグループは<span class="red">最大10個</span>作成することができます。<br>

@@ -2,3 +2,9 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Dialog styles of Angulae Material */
+.mat-dialog-container {
+    background-color: #ffffff;
+    color: #000000;
+}

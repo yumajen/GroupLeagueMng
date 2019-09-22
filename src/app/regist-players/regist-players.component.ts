@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Player } from '../player';
 import { PlayersService } from '../players.service';
+import { MatDialog } from '@angular/material';
+import { ShuffleComponent } from '../shuffle/shuffle.component';
 
 
 @Component({
@@ -16,6 +18,7 @@ export class RegistPlayersComponent implements OnInit {
   otherItemLabels: string[]; // 任意追加項目名
 
   constructor(
+    public matDialog: MatDialog,
     private playersService: PlayersService
   ) {
     this.inputInformations = new Array(
@@ -115,6 +118,15 @@ export class RegistPlayersComponent implements OnInit {
     // プレイヤー入力情報から対象項目の値を削除
     this.inputInformations.forEach((inputInformation) => {
       delete inputInformation['otherItems'][key];
+    });
+  }
+
+  openShuffleDialog(): void {
+    let shuffleDialog = this.matDialog.open(ShuffleComponent, {
+      data: { 'inputInformations': this.inputInformations },
+      width: '50vw',
+      height: '90vh',
+      disableClose: true
     });
   }
 
