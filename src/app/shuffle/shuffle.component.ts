@@ -55,4 +55,9 @@ export class ShuffleComponent implements OnInit {
       });
     }
   }
+
+  isGroupsCreated(): boolean {
+    return this.groupLeagues.length > 0;
+  }
+
 }

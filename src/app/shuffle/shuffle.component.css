@@ -32,6 +32,10 @@ h3 {
 .created-groups {
   margin-left: 20px;
 }
+.inactive {
+  pointer-events: none;
+  opacity: 0.4;
+}
 
 /* 説明 */
 .discription {

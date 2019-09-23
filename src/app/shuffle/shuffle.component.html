@@ -2,11 +2,13 @@
 <p>現在の参加者は{{totalPlayers}}人です。</p>
 <div class="condition-area">
     <h3>リーグ数の設定条件</h3>
-    <div class="cond-form">
+    <div class="cond-form" [class.inactive]="isGroupsCreated()">
         <label>グループ数：</label>
+        <!-- TODO: グループ生成後のtab操作によるフォーカス無効処理を追加する -->
         <input type="text" #groups>
     </div>
-    <div class="create-group">
+    <div class="create-group" [class.inactive]="isGroupsCreated()">
+        <!-- TODO: グループ生成後のtab操作によるフォーカス無効処理を追加する -->
         <button (click)="createGroups(groups.value)">グループを生成</button>
     </div>
     <div *ngIf="groupLeagues.length > 0" class="created-groups">
