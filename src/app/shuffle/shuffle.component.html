@@ -1,20 +1,21 @@
 <h2>リーグ表作成条件</h2>
-<p>現在の参加者は{{numberOfPlayers}}人です。</p>
+<p>現在の参加者は{{totalPlayers}}人です。</p>
 <div class="condition-area">
     <h3>リーグ数の設定条件</h3>
-    <div class="cond-option">
-        <input type="radio" name="groups" checked>1グループ内の上限人数を設定して参加者を振り分ける
-        <div class="cond-form">
-            <label>上限人数：</label>
-            <input type="text">
-        </div>
+    <div class="cond-form">
+        <label>グループ数：</label>
+        <input type="text" #groups>
     </div>
-    <div class="cond-option">
-        <input type="radio" name="groups">グループ数を設定を設定して参加者を振り分ける
-        <div class="cond-form">
-            <label>グループ数：</label>
-            <input type="text">
-        </div>
+    <div class="create-group">
+        <button (click)="createGroups(groups.value)">グループを生成</button>
+    </div>
+    <div *ngIf="groupLeagues.length > 0" class="created-groups">
+        <p>以下のグループを生成しました。</p>
+        <ul>
+            <li *ngFor="let group of groupLeagues">
+                {{group.name}}：{{group.numberOfPlayers}}人
+            </li>
+        </ul>
     </div>
 </div>
 <div class="condition-area">

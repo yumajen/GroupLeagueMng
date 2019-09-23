@@ -12,7 +12,6 @@ import { ShuffleComponent } from '../shuffle/shuffle.component';
 })
 export class RegistPlayersComponent implements OnInit {
 
-  player: Player[] = Player.players;
   inputInformations: any[]; // 入力されたプレイヤー情報（DB登録前）
   checkedInformations: number[]; // チェックボックスが有効となっているプレイヤー情報 
   otherItemLabels: string[]; // 任意追加項目名
