@@ -25,14 +25,14 @@
     <div class="cond-option">
         <input type="radio" name="shuffle" checked>手動シャッフル
         <div class="cond-form">
-            <button>シャッフル</button>
-            <span>0回</span>
+            <button (click)="manualShuffle()">シャッフル</button>
+            <span>{{shuffleCount}}回</span>
         </div>
     </div>
     <div class="cond-option">
         <input type="radio" name="shuffle">自動シャッフル
         <div class="cond-form">
-            <button>シャッフル</button>
+            <button (click)="autoShuffle()">シャッフル</button>
         </div>
     </div>
 </div>
