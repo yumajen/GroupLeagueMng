@@ -14,6 +14,8 @@ export class ShuffleComponent implements OnInit {
   groupLeagues: any[]; // グループリーグ
   inputInformations: any[] // 入力されたプレイヤー情報(shuffleコンポーネント内での保持用)
   shuffleCount: number // シャッフル回数(手動の場合のみ)
+  shuffleMethod: number // シャッフル方法(自動:0, 手動:1)
+  autoShuffleMessage: string // 自動シャッフル時の完了メッセージ
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -24,6 +26,8 @@ export class ShuffleComponent implements OnInit {
     this.groupLeagues = [];
     this.inputInformations = Array.from(this.data.inputInformations); // inputInformationsのDeep Copy
     this.shuffleCount = 0;
+    this.shuffleMethod = 0;
+    this.autoShuffleMessage = null;
   }
 
   ngOnInit() {
@@ -76,6 +80,7 @@ export class ShuffleComponent implements OnInit {
     for (let i = 0; i < count; i++) {
       this.executeShuffle();
     }
+    this.autoShuffleMessage = 'シャッフル完了';
   }
 
   executeShuffle(): void {
@@ -86,5 +91,15 @@ export class ShuffleComponent implements OnInit {
     }
 
     this.inputInformations = Array.from(array);
+  }
+
+  switchActivation(event: any): void {
+    if (event.target.id == 'manual') {
+      this.shuffleMethod = 0;
+    } else if (event.target.id == 'auto') {
+      this.shuffleMethod = 1;
+    } else {
+      this.shuffleMethod = 0;
+    }
   }
 }

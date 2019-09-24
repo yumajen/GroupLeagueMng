@@ -1,7 +1,7 @@
 <h2>リーグ表作成条件</h2>
 <p>現在の参加者は{{totalPlayers}}人です。</p>
 <div class="condition-area">
-    <h3>リーグ数の設定条件</h3>
+    <h3>グループ生成</h3>
     <div class="cond-form" [class.inactive]="isGroupsCreated()">
         <label>グループ数：</label>
         <!-- TODO: グループ生成後のtab操作によるフォーカス無効処理を追加する -->
@@ -20,19 +20,20 @@
         </ul>
     </div>
 </div>
-<div class="condition-area">
-    <h3>シャッフルの条件</h3>
+<div class="condition-area" [class.inactive]="!(isGroupsCreated())">
+    <h3>シャッフル実行</h3>
     <div class="cond-option">
-        <input type="radio" name="shuffle" checked>手動シャッフル
-        <div class="cond-form">
+        <input type="radio" id="manual" name="shuffle" (change)="switchActivation($event)" checked>手動シャッフル
+        <div class="cond-form" [class.inactive]="shuffleMethod == 1">
             <button (click)="manualShuffle()">シャッフル</button>
             <span>{{shuffleCount}}回</span>
         </div>
     </div>
     <div class="cond-option">
-        <input type="radio" name="shuffle">自動シャッフル
-        <div class="cond-form">
+        <input type="radio" id="auto" name="shuffle" (change)="switchActivation($event)">自動シャッフル
+        <div class="cond-form" [class.inactive]="shuffleMethod == 0">
             <button (click)="autoShuffle()">シャッフル</button>
+            <span *ngIf="autoShuffleMessage">{{autoShuffleMessage}}</span>
         </div>
     </div>
 </div>
