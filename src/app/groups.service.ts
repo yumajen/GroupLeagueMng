@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Group } from './group';
+import { Linkage } from './linkage';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -10,6 +11,7 @@ import { catchError } from 'rxjs/operators';
 export class GroupsService {
 
   private groupsUrl = 'api/groups'; // Web APIのURL
+  private linkagesUrl = 'api/linkages'; // Web APIのURL
   private httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
   };
@@ -29,6 +31,13 @@ export class GroupsService {
     return this.http.post<Group>(this.groupsUrl, groupLeague, this.httpOptions)
       .pipe(
         catchError(this.handleError<Group>('registGroup'))
+      );
+  }
+
+  registLinkage(linkage: Linkage): Observable<Linkage> {
+    return this.http.post<Linkage>(this.linkagesUrl, linkage, this.httpOptions)
+      .pipe(
+        catchError(this.handleError<Linkage>('registLinkage'))
       );
   }
 

@@ -4,6 +4,7 @@ import { PlayersService } from '../players.service';
 import { GroupsService } from '../groups.service';
 import { Player } from '../player';
 import { Group } from '../group';
+import { Linkage } from '../linkage';
 
 @Component({
   selector: 'app-shuffle',
@@ -111,14 +112,16 @@ export class ShuffleComponent implements OnInit {
     // プレイヤーとグループを紐づける
     this.allocatePlayersToGroups();
     // 各種情報をDBへ登録する
-    // this.registPlayers();
-    // this.registGroups();
+    this.registPlayers();
+    this.registGroups();
+    this.registLinkages();
   }
 
 
   allocatePlayersToGroups(): void {
     let index = 0;
 
+    // シャッフル処理終了後のプレイヤー情報配列の先頭から一人ずつグループと紐づけていく
     this.groupLeagues.forEach((groupLeague) => {
       [...Array(groupLeague.numberOfPlayers)].map(() => {
         this.linkages.push({
@@ -150,6 +153,18 @@ export class ShuffleComponent implements OnInit {
           (group) => {
             // 成功時の処理
             console.log(group);
+          }
+        );
+    });
+  }
+
+  registLinkages(): void {
+    this.linkages.forEach((linkage) => {
+      this.groupsService.registLinkage(linkage as Linkage)
+        .subscribe(
+          (linkages) => {
+            // 成功時の処理
+            console.log(linkages);
           }
         );
     });
