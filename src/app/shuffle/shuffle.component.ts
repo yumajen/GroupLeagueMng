@@ -2,6 +2,9 @@ import { Component, OnInit, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material';
 import { PlayersService } from '../players.service';
 import { GroupsService } from '../groups.service';
+import { Player } from '../player';
+import { Group } from '../group';
+import { Linkage } from '../linkage';
 
 @Component({
   selector: 'app-shuffle',
@@ -13,6 +16,7 @@ export class ShuffleComponent implements OnInit {
   totalPlayers: number; // 合計参加人数
   groupLeagues: any[]; // グループリーグ
   inputInformations: any[] // 入力されたプレイヤー情報(shuffleコンポーネント内での保持用)
+  linkages: any[]; // プレイヤーとグループの紐付け情報
   shuffleCount: number // シャッフル回数(手動の場合のみ)
   shuffleMethod: number // シャッフル方法(自動:0, 手動:1)
   autoShuffleMessage: string // 自動シャッフル時の完了メッセージ
@@ -25,6 +29,7 @@ export class ShuffleComponent implements OnInit {
   ) {
     this.groupLeagues = [];
     this.inputInformations = Array.from(this.data.inputInformations); // inputInformationsのDeep Copy
+    this.linkages = [];
     this.shuffleCount = 0;
     this.shuffleMethod = 0;
     this.autoShuffleMessage = null;
@@ -102,4 +107,67 @@ export class ShuffleComponent implements OnInit {
       this.shuffleMethod = 0;
     }
   }
+
+  finishLeaguesSetting(): void {
+    // プレイヤーとグループを紐づける
+    this.allocatePlayersToGroups();
+    // 各種情報をDBへ登録する
+    this.registPlayers();
+    this.registGroups();
+    this.registLinkages();
+  }
+
+
+  allocatePlayersToGroups(): void {
+    let index = 0;
+
+    // シャッフル処理終了後のプレイヤー情報配列の先頭から一人ずつグループと紐づけていく
+    this.groupLeagues.forEach((groupLeague) => {
+      [...Array(groupLeague.numberOfPlayers)].map(() => {
+        this.linkages.push({
+          id: index + 1,
+          playerId: this.inputInformations[index].id,
+          groupId: groupLeague.id
+        });
+        index++;
+      });
+    });
+  }
+
+  registPlayers(): void {
+    this.data.inputInformations.forEach((inputPlayer) => {
+      this.playersService.registPlayer(inputPlayer as Player)
+        .subscribe(
+          (player) => {
+            // 成功時の処理
+            console.log(player);
+          }
+        );
+    });
+  }
+
+  registGroups(): void {
+    this.groupLeagues.forEach((groupLeague) => {
+      this.groupsService.registGroup(groupLeague as Group)
+        .subscribe(
+          (group) => {
+            // 成功時の処理
+            console.log(group);
+          }
+        );
+    });
+  }
+
+  registLinkages(): void {
+    this.linkages.forEach((linkage) => {
+      this.groupsService.registLinkage(linkage as Linkage)
+        .subscribe(
+          (linkages) => {
+            // 成功時の処理
+            console.log(linkages);
+          }
+        );
+    });
+  }
+
 }

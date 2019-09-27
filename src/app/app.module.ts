@@ -9,8 +9,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconModule, MatDialogModule } from '@angular/material';
 import { HttpClientModule } from '@angular/common/http';
 import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
-import { InMemoryPlayerDataService } from './in-memory-player-data.service';
-
+import { InMemoryDataService } from './in-memory-data.service';
 
 @NgModule({
   declarations: [
@@ -26,11 +25,9 @@ import { InMemoryPlayerDataService } from './in-memory-player-data.service';
     MatIconModule,
     MatDialogModule,
     HttpClientModule,
-    HttpClientInMemoryWebApiModule.forRoot(
-      InMemoryPlayerDataService, { dataEncapsulation: false }
-    )
+    HttpClientInMemoryWebApiModule.forRoot(InMemoryDataService)
   ],
-  providers: [InMemoryPlayerDataService],
+  providers: [InMemoryDataService],
   bootstrap: [AppComponent],
   entryComponents: [ShuffleComponent]
 })
