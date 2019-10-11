@@ -140,7 +140,6 @@ export class ShuffleComponent implements OnInit {
         .subscribe(
           (player) => {
             // 成功時の処理
-            console.log(player);
           }
         );
     });
@@ -152,7 +151,6 @@ export class ShuffleComponent implements OnInit {
         .subscribe(
           (group) => {
             // 成功時の処理
-            console.log(group);
           }
         );
     });
@@ -164,7 +162,6 @@ export class ShuffleComponent implements OnInit {
         .subscribe(
           (linkages) => {
             // 成功時の処理
-            console.log(linkages);
           }
         );
     });
