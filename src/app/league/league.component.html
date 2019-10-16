@@ -24,263 +24,60 @@
 </div>
 <hr>
 <h2>リーグ表</h2>
-<div id="group-1">
-    <h3>グループA</h3>
-    <div class="match-list">
-        <div>
-            <p>------- 第1回戦 -------</p>
-            <table class="round">
+<div *ngIf="linkages">
+    <div id="group-1" *ngFor="let group of groups">
+        <h3 *ngIf="group">{{group.name}}</h3>
+        <div class="match-list">
+            <div *ngFor="let round of getRoundNumber(group.id); let i = index">
+                <p>------- 第{{i+1}}回戦 -------</p>
+                <table class="round">
+                    <tr *ngFor="let match of drawLotsCombination(group.id, i + 1)">
+                        <td>{{match[0].name}}</td>
+                        <td>
+                            <div class="result">
+                                <button class="result-win">○</button>
+                                <button class="result-draw">△</button>
+                                <button class="result-win">○</button>
+                            </div>
+                            <div class="score">
+                                <input type="text" class="score-form"> - <input type="text" class="score-form">
+                            </div>
+                        </td>
+                        <td>{{match[1].name}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="league">
+            <table border=1>
                 <tr>
-                    <td>プレイヤー1</td>
-                    <td>
-                        <div class="result">
-                            <button class="result-win">○</button>
-                            <button class="result-draw">△</button>
-                            <button class="result-win">○</button>
-                        </div>
-                        <div class="score">
-                            <input type="text" class="score-form"> - <input type="text" class="score-form">
-                        </div>
+                    <td></td>
+                    <td *ngFor="let player of getPlayersOfEachGroups(group.id)">
+                        {{player.name}}
                     </td>
-                    <td>プレイヤー2</td>
+                    <td>勝ち点</td>
+                    <td>得点</td>
+                    <td>失点</td>
+                    <td>得失点差</td>
+                    <td>順位</td>
                 </tr>
-                <tr>
-                    <td>プレイヤー3</td>
+                <tr *ngFor="let player of getPlayersOfEachGroups(group.id)">
                     <td>
-                        <div class="result">
-                            <button class="result-win">○</button>
-                            <button class="result-draw">△</button>
-                            <button class="result-win">○</button>
-                        </div>
-                        <div class="score">
-                            <input type="text" class="score-form"> - <input type="text" class="score-form">
-                        </div>
+                        {{player.name}}<mat-icon class="info">info</mat-icon>
                     </td>
-                    <td>プレイヤー4</td>
-                </tr>
-                <tr>
-                    <td>プレイヤー5</td>
-                    <td>
-                        <div class="result">
-                            <button class="result-win">○</button>
-                            <button class="result-draw">△</button>
-                            <button class="result-win">○</button>
-                        </div>
-                        <div class="score">
-                            <input type="text" class="score-form"> - <input type="text" class="score-form">
-                        </div>
-                    </td>
-                    <td>プレイヤー6</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
                 </tr>
             </table>
         </div>
-        <div>
-            <p>------- 第2回戦 -------</p>
-            <table class="round">
-                <tr>
-                    <td>プレイヤー1</td>
-                    <td>
-                        <div class="result">
-                            <button class="result-win">○</button>
-                            <button class="result-draw">△</button>
-                            <button class="result-win">○</button>
-                        </div>
-                        <div class="score">
-                            <input type="text" class="score-form"> - <input type="text" class="score-form">
-                        </div>
-                    </td>
-                    <td>プレイヤー3</td>
-                </tr>
-                <tr>
-                    <td>プレイヤー2</td>
-                    <td>
-                        <div class="result">
-                            <button class="result-win">○</button>
-                            <button class="result-draw">△</button>
-                            <button class="result-win">○</button>
-                        </div>
-                        <div class="score">
-                            <input type="text" class="score-form"> - <input type="text" class="score-form">
-                        </div>
-                    </td>
-                    <td>プレイヤー6</td>
-                </tr>
-                <tr>
-                    <td>プレイヤー3</td>
-                    <td>
-                        <div class="result">
-                            <button class="result-win">○</button>
-                            <button class="result-draw">△</button>
-                            <button class="result-win">○</button>
-                        </div>
-                        <div class="score">
-                            <input type="text" class="score-form"> - <input type="text" class="score-form">
-                        </div>
-                    </td>
-                    <td>プレイヤー5</td>
-                </tr>
-            </table>
-        </div>
-        <div>
-            <p>------- 第3回戦 -------</p>
-            <table class="round">
-                <tr>
-                    <td>プレイヤー1</td>
-                    <td>
-                        <div class="result">
-                            <button class="result-win">○</button>
-                            <button class="result-draw">△</button>
-                            <button class="result-win">○</button>
-                        </div>
-                        <div class="score">
-                            <input type="text" class="score-form"> - <input type="text" class="score-form">
-                        </div>
-                    </td>
-                    <td>プレイヤー5</td>
-                </tr>
-                <tr>
-                    <td>プレイヤー2</td>
-                    <td>
-                        <div class="result">
-                            <button class="result-win">○</button>
-                            <button class="result-draw">△</button>
-                            <button class="result-win">○</button>
-                        </div>
-                        <div class="score">
-                            <input type="text" class="score-form"> - <input type="text" class="score-form">
-                        </div>
-                    </td>
-                    <td>プレイヤー3</td>
-                </tr>
-                <tr>
-                    <td>プレイヤー4</td>
-                    <td>
-                        <div class="result">
-                            <button class="result-win">○</button>
-                            <button class="result-draw">△</button>
-                            <button class="result-win">○</button>
-                        </div>
-                        <div class="score">
-                            <input type="text" class="score-form"> - <input type="text" class="score-form">
-                        </div>
-                    </td>
-                    <td>プレイヤー6</td>
-                </tr>
-            </table>
-        </div>
-    </div>
-    <div class="league">
-        <table border=1>
-            <tr>
-                <td></td>
-                <td>プレイヤー1</td>
-                <td>プレイヤー2</td>
-                <td>プレイヤー3</td>
-                <td>プレイヤー4</td>
-                <td>プレイヤー5</td>
-                <td>プレイヤー6</td>
-                <td>勝ち点</td>
-                <td>得点</td>
-                <td>失点</td>
-                <td>得失点差</td>
-                <td>順位</td>
-            </tr>
-            <tr>
-                <td>
-                    プレイヤー1<mat-icon class="info">info</mat-icon>
-                </td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>
-                    プレイヤー2<mat-icon class="info">info</mat-icon>
-                </td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>
-                    プレイヤー3<mat-icon class="info">info</mat-icon>
-                </td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>
-                    プレイヤー4<mat-icon class="info">info</mat-icon>
-                </td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>
-                    プレイヤー5<mat-icon class="info">info</mat-icon>
-                </td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td>
-                    プレイヤー6<mat-icon class="info">info</mat-icon>
-                </td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-        </table>
     </div>
 </div>

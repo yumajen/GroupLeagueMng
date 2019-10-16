@@ -27,6 +27,13 @@ export class GroupsService {
       );
   }
 
+  getLinkages(): Observable<Linkage[]> {
+    return this.http.get<Linkage[]>(this.linkagesUrl)
+      .pipe(
+        catchError(this.handleError<Linkage[]>('getLinkages', []))
+      );
+  }
+
   registGroup(groupLeague: Group): Observable<Group> {
     return this.http.post<Group>(this.groupsUrl, groupLeague, this.httpOptions)
       .pipe(

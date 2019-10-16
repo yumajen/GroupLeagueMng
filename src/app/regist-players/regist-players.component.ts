@@ -28,7 +28,6 @@ export class RegistPlayersComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.getPlayers();
   }
 
   getOtherItems(id: number): any {
