@@ -31,7 +31,7 @@
             <div *ngFor="let round of getRoundNumber(group.id); let i = index">
                 <p>------- 第{{i+1}}回戦 -------</p>
                 <table class="round">
-                    <tr *ngFor="let match of drawLotsCombination(group.id)">
+                    <tr *ngFor="let match of drawLotsCombination(group.id, i + 1)">
                         <td>{{match[0].name}}</td>
                         <td>
                             <div class="result">
