@@ -45,6 +45,9 @@
                         </td>
                         <td>{{match[1].name}}</td>
                     </tr>
+                    <tr *ngIf="breakPlayer">
+                        対戦なし：{{breakPlayer.name}}
+                    </tr>
                 </table>
             </div>
         </div>

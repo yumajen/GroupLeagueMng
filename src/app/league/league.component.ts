@@ -15,7 +15,11 @@ export class LeagueComponent implements OnInit {
   players: Player[];
   groups: Group[];
   linkages: Linkage[];
-  matchedInformations: any[] = []; // 各プレイヤーに対しする対戦済みプレイヤー情報を格納する配列
+  containedPlayers: Player[]; // 各グループに含まれているプレイヤーの配列
+  shuffledPlayers: Player[]; // シャッフルされたプレイヤーの配列
+  centerPlayer: Player; // Kirkmanの組分け法の円の中心に配置されるプレイヤー
+  numberOfMatches: number; // 各グループ1回戦当たりの対戦数
+  breakPlayer: Player; // 対戦一回休みのプレイヤー(グループ内人数が奇数人の場合)
 
   constructor(
     private playersService: PlayersService,
@@ -84,58 +88,45 @@ export class LeagueComponent implements OnInit {
   }
 
   drawLotsCombination(groupId: number, roundNumber: number): any[] {
-    let containedPlayers = [];
     let matches = [];
+    let dummyPlayer: Player = { id: 999, name: 'dummy', otherItems: {} };
 
-    containedPlayers = this.getPlayersOfEachGroups(groupId);
     if (roundNumber == 1) {
-      // 各グループの最初のラウンドのみ
-      containedPlayers.forEach((player) => {
-        this.matchedInformations.push(
-          { id: player.id, matched: [] }
-        );
-      });
-    }
-
-    // グループ内に含まれるプレイヤー情報をシャッフルして配列に格納する
-    let shuffledPlayers = this.executeShuffle(containedPlayers);
-
-    // 組み合わせの配列に対戦する2人1組の配列をネスティングで格納する
-    while (shuffledPlayers.length > 1) {
-      // 対戦ペアの1人目を選ぶ
-      let player1 = shuffledPlayers.shift();
-      // player1の対戦済み情報を取得
-      let player1MatchInfo = this.matchedInformations.filter((info) => {
-        return info.id == player1.id;
-      });
-      // player1と既に対戦済みのプレイヤー情報を取得
-      let alreadyMatched = player1MatchInfo[0].matched;
-
-      let player2: Player;
-      for (let player of shuffledPlayers) {
-        if (alreadyMatched.indexOf(player) == -1) {
-          player2 = shuffledPlayers.splice(shuffledPlayers.indexOf(player), 1)[0];
-          break;
-        }
+      this.containedPlayers = this.getPlayersOfEachGroups(groupId);
+      // グループ内人数が奇数の場合はダミープレイヤーを加えて偶数にする
+      if (this.containedPlayers.length % 2 != 0) {
+        this.containedPlayers.push(dummyPlayer);
       }
+      this.numberOfMatches = this.containedPlayers.length / 2;
+      // グループ内に含まれるプレイヤー情報をシャッフルして配列に格納する
+      this.shuffledPlayers = this.executeShuffle(this.containedPlayers);
+      this.centerPlayer = this.shuffledPlayers.shift();
+    }
+
+    let player1: Player = null;
+    let player2: Player = null;
+
+    player1 = this.centerPlayer;
+    player2 = this.shuffledPlayers[0];
+    if (this.isSameObject(player1, dummyPlayer) || this.isSameObject(player2, dummyPlayer)) {
+      this.breakPlayer = this.isSameObject(player1, dummyPlayer) ? player2 : player1;
+    } else {
       matches.push([player1, player2]);
-
-      // player1, player2を互いのmatchedに格納する
-      this.matchedInformations.forEach((info) => {
-        if (info.id == player1.id) {
-          info.matched.push(player2);
-        }
-        if (info.id == player2.id) {
-          info.matched.push(player1);
-        }
-      });
     }
 
-    if ((containedPlayers.length % 2 == 0 && roundNumber == containedPlayers.length - 1) ||
-      (containedPlayers.length % 2 != 0 && roundNumber == containedPlayers.length)) {
-      // 各グループの最後のラウンドのみ
-      this.matchedInformations = [];
+    for (let i = 1; i <= this.numberOfMatches - 1; i++) {
+      player1 = this.shuffledPlayers[i];
+      player2 = this.shuffledPlayers[this.containedPlayers.length - i - 1];
+      if (this.isSameObject(player1, dummyPlayer) || this.isSameObject(player2, dummyPlayer)) {
+        this.breakPlayer = this.isSameObject(player1, dummyPlayer) ? player2 : player1;
+      } else {
+        matches.push([player1, player2]);
+      }
     }
+
+    // shuffledPlayers配列の末尾の要素を先頭に付け替えることで要素をローテーションする
+    let lastElement = this.shuffledPlayers.pop();
+    this.shuffledPlayers.unshift(lastElement);
 
     return matches;
   }
@@ -148,6 +139,10 @@ export class LeagueComponent implements OnInit {
     }
 
     return Array.from(array);
+  }
+
+  isSameObject(obj1, obj2): boolean {
+    return JSON.stringify(obj1) === JSON.stringify(obj2);
   }
 
 }
