@@ -4,6 +4,8 @@ import { Group } from '../group';
 import { Linkage } from '../linkage';
 import { PlayersService } from '../players.service';
 import { GroupsService } from '../groups.service';
+import { MatchesService } from '../matches.service';
+import { MatchInformation } from '../matchInformation';
 
 @Component({
   selector: 'app-league',
@@ -15,22 +17,23 @@ export class LeagueComponent implements OnInit {
   players: Player[];
   groups: Group[];
   linkages: Linkage[];
+  matchInformations: MatchInformation[];
   containedPlayers: Player[]; // 各グループに含まれているプレイヤーの配列
   shuffledPlayers: Player[]; // シャッフルされたプレイヤーの配列
   centerPlayer: Player; // Kirkmanの組分け法の円の中心に配置されるプレイヤー
   numberOfMatches: number; // 各グループ1回戦当たりの対戦数
-  breakPlayer: Player; // 対戦一回休みのプレイヤー(グループ内人数が奇数人の場合)
+  breakPlayerInfos: any[] = []; // 対戦一回休みのプレイヤー(グループ内人数が奇数人の場合)
+  matchInfoIndex = 1; // 対戦情報登録用IDとして使うインデックス(要再考)
 
   constructor(
     private playersService: PlayersService,
-    private groupsService: GroupsService
-  ) {
-    this.getPlayers();
-    this.getGroups();
-    this.getLinkages();
-  }
+    private groupsService: GroupsService,
+    private matchesService: MatchesService
+  ) { }
 
   ngOnInit() {
+    this.getPlayers();
+    this.getGroups();
   }
 
   getPlayers(): void {
@@ -45,6 +48,7 @@ export class LeagueComponent implements OnInit {
     this.groupsService.getGroups().subscribe(
       (groups) => {
         this.groups = groups;
+        this.getLinkages();
       }
     );
   }
@@ -53,6 +57,16 @@ export class LeagueComponent implements OnInit {
     this.groupsService.getLinkages().subscribe(
       (linkages) => {
         this.linkages = linkages;
+        this.executeLottery();
+        this.getMatchInformations();
+      }
+    );
+  }
+
+  getMatchInformations(): void {
+    this.matchesService.getMatcheInformations().subscribe(
+      (matchInformations) => {
+        this.matchInformations = matchInformations;
       }
     );
   }
@@ -78,13 +92,41 @@ export class LeagueComponent implements OnInit {
     return eachPlayers;
   }
 
+  getMatchInformationsOfEachGroups(groupId: number, roundNumber: number): Player[] {
+    let eachMatchInfos = [];
+
+    eachMatchInfos = this.matchInformations.filter((info) => {
+      if (info.groupId == groupId && info.roundNumber == roundNumber) {
+        return info;
+      };
+    });
+
+    return eachMatchInfos;
+  }
+
+  executeLottery() {
+    this.groups.forEach((group) => {
+      let rounds = this.getRoundNumber(group.id);
+      rounds.forEach((round) => {
+        let matches = this.drawLotsCombination(group.id, round);
+        this.registMatcheInformation(group.id, round, matches);
+      });
+    });
+  }
+
   getRoundNumber(groupId: number): number[] {
     // 各グループの人数に応じた回戦数を計算し、回戦数分の空要素を持った配列を返す
     let count = this.linkages.filter((linkage) => {
       return linkage.groupId == groupId;
     }).length;
 
-    return count % 2 == 0 ? Array(count - 1) : Array(count);
+    let allRounds = count % 2 == 0 ? count - 1 : count;
+    let rounds = [];
+    for (let i = 1; i <= allRounds; i++) {
+      rounds.push(i);
+    }
+
+    return rounds;
   }
 
   drawLotsCombination(groupId: number, roundNumber: number): any[] {
@@ -109,7 +151,8 @@ export class LeagueComponent implements OnInit {
     player1 = this.centerPlayer;
     player2 = this.shuffledPlayers[0];
     if (this.isSameObject(player1, dummyPlayer) || this.isSameObject(player2, dummyPlayer)) {
-      this.breakPlayer = this.isSameObject(player1, dummyPlayer) ? player2 : player1;
+      let breakPlayer = this.isSameObject(player1, dummyPlayer) ? player2 : player1;
+      this.setBreakPlayer(groupId, roundNumber, breakPlayer);
     } else {
       matches.push([player1, player2]);
     }
@@ -118,7 +161,8 @@ export class LeagueComponent implements OnInit {
       player1 = this.shuffledPlayers[i];
       player2 = this.shuffledPlayers[this.containedPlayers.length - i - 1];
       if (this.isSameObject(player1, dummyPlayer) || this.isSameObject(player2, dummyPlayer)) {
-        this.breakPlayer = this.isSameObject(player1, dummyPlayer) ? player2 : player1;
+        let breakPlayer = this.isSameObject(player1, dummyPlayer) ? player2 : player1;
+        this.setBreakPlayer(groupId, roundNumber, breakPlayer);
       } else {
         matches.push([player1, player2]);
       }
@@ -143,6 +187,46 @@ export class LeagueComponent implements OnInit {
 
   isSameObject(obj1, obj2): boolean {
     return JSON.stringify(obj1) === JSON.stringify(obj2);
+  }
+
+  registMatcheInformation(groupId: number, roundNumber: number, matches: any[]): void {
+    matches.forEach((match) => {
+      let inputMatchInfo = {
+        id: this.matchInfoIndex,
+        groupId: groupId,
+        roundNumber: roundNumber,
+        match: match,
+      };
+      this.matchesService.registMatcheInformation(inputMatchInfo as MatchInformation)
+        .subscribe(
+          (matcheInformation) => {
+            // 成功時の処理
+          }
+        );
+      this.matchInfoIndex++;
+    });
+  }
+
+  setBreakPlayer(groupId: number, roundNumber: number, breakPlayer: Player): void {
+    this.breakPlayerInfos.push({
+      groupId: groupId,
+      roundNumber: roundNumber,
+      breakPlayer: breakPlayer,
+    });
+  }
+
+  getBreakPlayerMessage(groupId: number, roundNumber: number): string {
+    let breakPlayer: Player
+
+    this.breakPlayerInfos.filter((breakPlayerInfo) => {
+      if (breakPlayerInfo.groupId == groupId && breakPlayerInfo.roundNumber == roundNumber) {
+        breakPlayer = breakPlayerInfo.breakPlayer;
+      }
+    });
+
+    let message = breakPlayer ? '対戦なし：' + breakPlayer.name : null;
+
+    return message;
   }
 
 }
