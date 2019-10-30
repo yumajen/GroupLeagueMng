@@ -7,6 +7,12 @@ import { GroupsService } from '../groups.service';
 import { MatchesService } from '../matches.service';
 import { MatchInformation } from '../matchInformation';
 
+const RESULT_SYMBOL = {
+  WIN: '◯',
+  LOSE: '×',
+  DRAW: '△',
+};
+
 @Component({
   selector: 'app-league',
   templateUrl: './league.component.html',
@@ -89,17 +95,39 @@ export class LeagueComponent implements OnInit {
       });
     });
 
+    eachPlayers.sort(function (a, b) {
+      let ida = a.id;
+      let idb = b.id;
+      if (ida < idb) {
+        return -1;
+      }
+      if (ida > idb) {
+        return 1;
+      }
+      return 0;
+    });
+
     return eachPlayers;
   }
 
-  getMatchInformationsOfEachGroups(groupId: number, roundNumber: number): Player[] {
+  getMatchInformationsOfEachGroups(groupId: number, roundNumber: number = null): any[] {
     let eachMatchInfos = [];
 
     eachMatchInfos = this.matchInformations.filter((info) => {
-      if (info.groupId == groupId && info.roundNumber == roundNumber) {
+      if (info.groupId == groupId) {
         return info;
       };
     });
+
+    if (roundNumber) {
+      eachMatchInfos = Array.from(
+        eachMatchInfos.filter((info) => {
+          if (info.roundNumber == roundNumber) {
+            return info;
+          };
+        })
+      );
+    }
 
     return eachMatchInfos;
   }
@@ -196,6 +224,9 @@ export class LeagueComponent implements OnInit {
         groupId: groupId,
         roundNumber: roundNumber,
         match: match,
+        winnerId: null,
+        loserId: null,
+        isDraw: null,
       };
       this.matchesService.registMatcheInformation(inputMatchInfo as MatchInformation)
         .subscribe(
@@ -227,6 +258,23 @@ export class LeagueComponent implements OnInit {
     let message = breakPlayer ? '対戦なし：' + breakPlayer.name : null;
 
     return message;
+  }
+
+  getMatchResultSymbol(groupId: number, playerId1: number, playerId2: number): string {
+    if (playerId1 == playerId2) {
+      return;
+    }
+
+    let eachMatchInfos = this.getMatchInformationsOfEachGroups(groupId);
+    let result = eachMatchInfos.find((info) => {
+      let match = [info.match[0].id, info.match[1].id];
+      if (match.indexOf(playerId1) != -1 && match.indexOf(playerId2) != -1) {
+        return info;
+      }
+    });
+
+    let resultSymbol = result.isDraw ? RESULT_SYMBOL.DRAW : (playerId1 == result.winnerId ? RESULT_SYMBOL.WIN : RESULT_SYMBOL.LOSE)
+    return resultSymbol;
   }
 
 }
