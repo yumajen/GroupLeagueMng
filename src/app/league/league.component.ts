@@ -1,4 +1,4 @@
-import { Component, OnInit, ComponentFactoryResolver } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Player } from '../player';
 import { Group } from '../group';
 import { Linkage } from '../linkage';
@@ -30,11 +30,14 @@ export class LeagueComponent implements OnInit {
   numberOfMatches: number; // 各グループ1回戦当たりの対戦数
   breakPlayerInfos: any[] = []; // 対戦一回休みのプレイヤー(グループ内人数が奇数人の場合)
   matchInfoIndex = 1; // 対戦情報登録用IDとして使うインデックス(要再考)
+  matcheResults: any[] = []; // 対戦組合わせ毎の結果(データ更新用パラメータ)
+  pushedButtons: any[] = []; // 各組合せ毎に押下された勝敗ボタン情報を格納する
 
   constructor(
     private playersService: PlayersService,
     private groupsService: GroupsService,
-    private matchesService: MatchesService
+    private matchesService: MatchesService,
+    public changeDetectorRef: ChangeDetectorRef,
   ) { }
 
   ngOnInit() {
@@ -77,6 +80,12 @@ export class LeagueComponent implements OnInit {
     );
   }
 
+  updateMatchInformation(matchResult: any): void {
+    this.matchesService.updateMatchInformation(matchResult as MatchInformation).subscribe(
+      () => { }
+    )
+  }
+
   getPlayersOfEachGroups(groupId: number): Player[] {
     let targetLinkages = [];
     let eachPlayers = [];
@@ -95,22 +104,12 @@ export class LeagueComponent implements OnInit {
       });
     });
 
-    eachPlayers.sort(function (a, b) {
-      let ida = a.id;
-      let idb = b.id;
-      if (ida < idb) {
-        return -1;
-      }
-      if (ida > idb) {
-        return 1;
-      }
-      return 0;
-    });
+    this.sortArrayAscendingOrder(eachPlayers);
 
     return eachPlayers;
   }
 
-  getMatchInformationsOfEachGroups(groupId: number, roundNumber: number = null): any[] {
+  getMatchInformationsOfEachGroups(groupId: number, roundNumber: number = null): MatchInformation[] {
     let eachMatchInfos = [];
 
     eachMatchInfos = this.matchInformations.filter((info) => {
@@ -225,8 +224,7 @@ export class LeagueComponent implements OnInit {
         roundNumber: roundNumber,
         match: match,
         winnerId: null,
-        loserId: null,
-        isDraw: null,
+        isDraw: false,
       };
       this.matchesService.registMatcheInformation(inputMatchInfo as MatchInformation)
         .subscribe(
@@ -261,6 +259,7 @@ export class LeagueComponent implements OnInit {
   }
 
   getMatchResultSymbol(groupId: number, playerId1: number, playerId2: number): string {
+    // リーグ表の斜め罫線に該当する部分なので勝敗のマークは表示しない
     if (playerId1 == playerId2) {
       return;
     }
@@ -273,8 +272,107 @@ export class LeagueComponent implements OnInit {
       }
     });
 
+    // 勝者IDが設定されておらず引き分けでもない場合(未対戦の場合)は勝敗のマークは表示しない
+    if (!result.winnerId && !result.isDraw) {
+      return;
+    }
+
     let resultSymbol = result.isDraw ? RESULT_SYMBOL.DRAW : (playerId1 == result.winnerId ? RESULT_SYMBOL.WIN : RESULT_SYMBOL.LOSE)
     return resultSymbol;
+  }
+
+  buttonPushedProcessing(buttonIndex: number, matchInfo: MatchInformation, playerId?: number): void {
+    this.changeButtonStatus(matchInfo.id, buttonIndex);
+    this.setResult(matchInfo, playerId);
+  }
+
+  changeButtonStatus(matchInfoId: number, buttonIndex: number): void {
+    // 同じ対戦組合せ内ではボタンの押下状態は排他的にする
+    let isSameButton = false;
+    this.pushedButtons.some((button, i) => {
+      if (button.id == matchInfoId) {
+        this.pushedButtons.splice(i, 1);
+        isSameButton = button.index == buttonIndex;
+      }
+    });
+    // 既に押下状態のボタンを再度押下する場合はメソッドを抜ける
+    if (isSameButton) {
+      return;
+    }
+
+    this.pushedButtons.push(
+      {
+        id: matchInfoId,
+        index: buttonIndex
+      }
+    )
+    this.sortArrayAscendingOrder(this.pushedButtons);
+  }
+
+  isPushed(buttonIndex: number, matchInfoId: number): boolean {
+    let target = this.pushedButtons.find((button) => {
+      if (button.id == matchInfoId) {
+        return button;
+      }
+    });
+
+    return target && target.index == buttonIndex;
+  }
+
+  setResult(matchInfo: MatchInformation, playerId?: number): void {
+    let winnerId: number;
+    let isDraw: boolean = false;
+
+    isDraw = !playerId;
+    if (!isDraw) {
+      winnerId = playerId;
+    }
+
+    // 既に同じmatchInforIdのデータが格納されている場合は削除しデータの重複を避ける
+    let isSameButton = false;
+    this.matcheResults.some((result, i) => {
+      if (result.id == matchInfo.id) {
+        this.matcheResults.splice(i, 1);
+        isSameButton = result.winnerId == playerId || isDraw;
+      }
+    });
+    // 既に押下状態のボタンを再度押下する場合はメソッドを抜ける
+    if (isSameButton) {
+      return;
+    }
+
+    let updateInfo = {
+      id: matchInfo.id,
+      groupId: matchInfo.groupId,
+      roundNumber: matchInfo.roundNumber,
+      match: matchInfo.match,
+      winnerId: winnerId,
+      isDraw: isDraw
+    }
+    this.matcheResults.push(updateInfo);
+    this.sortArrayAscendingOrder(this.matcheResults);
+  }
+
+  sortArrayAscendingOrder(array: any[]): void {
+    array.sort(function (a, b) {
+      let ida = a.id;
+      let idb = b.id;
+      if (ida < idb) {
+        return -1;
+      }
+      if (ida > idb) {
+        return 1;
+      }
+      return 0;
+    });
+  }
+
+  updateLeagues(): void {
+    this.matcheResults.forEach((result) => {
+      this.updateMatchInformation(result);
+    });
+    this.getMatchInformations();
+    this.matcheResults = [];
   }
 
 }

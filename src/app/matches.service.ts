@@ -32,6 +32,13 @@ export class MatchesService {
       );
   }
 
+  updateMatchInformation(updateMatchInfo: MatchInformation): Observable<MatchInformation> {
+    return this.http.put<MatchInformation>(this.matchesUrl, updateMatchInfo, this.httpOptions)
+      .pipe(
+        catchError(this.handleError<MatchInformation>('updateMatchInformations'))
+      )
+  }
+
   handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
       console.error(error);

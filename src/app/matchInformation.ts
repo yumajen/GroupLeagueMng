@@ -6,6 +6,5 @@ export class MatchInformation {
     roundNumber: number;
     match: any;
     winnerId: number;
-    loserId: number;
     isDraw: boolean;
 }
