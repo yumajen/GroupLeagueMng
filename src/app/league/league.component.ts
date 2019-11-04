@@ -32,6 +32,8 @@ export class LeagueComponent implements OnInit {
   matchInfoIndex = 1; // 対戦情報登録用IDとして使うインデックス(要再考)
   matcheResults: any[] = []; // 対戦組合わせ毎の結果(データ更新用パラメータ)
   pushedButtons: any[] = []; // 各組合せ毎に押下された勝敗ボタン情報を格納する
+  playersInfoForUpdate: any[] = []; // プレイヤー情報更新用の配列(勝ち点計算用)
+  point: any; // 勝ち点のオブジェクト
 
   constructor(
     private playersService: PlayersService,
@@ -76,6 +78,7 @@ export class LeagueComponent implements OnInit {
     this.matchesService.getMatcheInformations().subscribe(
       (matchInformations) => {
         this.matchInformations = matchInformations;
+        this.calculatePoints();
       }
     );
   }
@@ -83,7 +86,13 @@ export class LeagueComponent implements OnInit {
   updateMatchInformation(matchResult: any): void {
     this.matchesService.updateMatchInformation(matchResult as MatchInformation).subscribe(
       () => { }
-    )
+    );
+  }
+
+  updatePlayer(updatePlayerInfo: any) {
+    this.playersService.updatePlayer(updatePlayerInfo as Player).subscribe(
+      () => { }
+    );
   }
 
   getPlayersOfEachGroups(groupId: number): Player[] {
@@ -367,12 +376,58 @@ export class LeagueComponent implements OnInit {
     });
   }
 
-  updateLeagues(): void {
+  updateLeagues(winPoint: number, drawPoint: number, losePoint: number): void {
+    this.point = {
+      win: winPoint,
+      draw: drawPoint,
+      lose: losePoint
+    };
+
     this.matcheResults.forEach((result) => {
       this.updateMatchInformation(result);
     });
+
     this.getMatchInformations();
     this.matcheResults = [];
+  }
+
+  calculatePoints(): void {
+    this.players.forEach((player) => {
+      // 当該プレイヤーが関わる対戦のみを抽出
+      let targetResults = this.matchInformations.filter((info) => {
+        if (!info.winnerId && !info.isDraw) {
+          return;
+        }
+        if (this.isSameObject(info.match[0].id, player.id) || this.isSameObject(info.match[1].id, player.id)) {
+          return info;
+        }
+      });
+      if (targetResults.length == 0) {
+        return;
+      }
+      // 勝ち数のカウント
+      let winCount = targetResults.filter((result) => {
+        if (result.winnerId == player.id) {
+          return result;
+        }
+      }).length;
+      // 引き分け数のカウント
+      let drawCount = targetResults.filter((result) => {
+        if (result.isDraw) {
+          return result;
+        }
+      }).length;
+      // 負け数のカウント = 当該プレイヤーが関わる対戦数 - 勝ち数 - 引き分け数
+      let loseCount = targetResults.length - winCount - drawCount;
+
+      let updatePlayerInfo = JSON.parse(JSON.stringify(player));
+      let points = winCount * this.point.win + drawCount * this.point.draw + loseCount * this.point.lose;
+      updatePlayerInfo['points'] = points;
+
+      this.updatePlayer(updatePlayerInfo);
+    });
+
+    this.getPlayers();
   }
 
 }

@@ -21,7 +21,14 @@ export class RegistPlayersComponent implements OnInit {
     private playersService: PlayersService
   ) {
     this.inputInformations = new Array(
-      { id: 1, name: '', otherItems: {} }
+      {
+        id: 1,
+        name: '',
+        otherItems: {},
+        gains: null,
+        losts: null,
+        points: null
+      }
     );
     this.checkedInformations = [];
     this.otherItemLabels = [];
@@ -45,7 +52,14 @@ export class RegistPlayersComponent implements OnInit {
     });
 
     this.inputInformations.push(
-      { id: index, name: '', otherItems: otherItems }
+      {
+        id: index,
+        name: '',
+        otherItems: otherItems,
+        gains: null,
+        losts: null,
+        points: null
+      }
     );
   }
 
