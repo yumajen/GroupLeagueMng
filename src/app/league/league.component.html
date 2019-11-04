@@ -3,13 +3,13 @@
     <div>
         <div class="point-setting">
             <label>勝ち：</label>
-            <input type="text" class="point-form" value=3>点
+            <input type="text" class="point-form" value=3 #winPoint>点
             <br>
             <label>分け：</label>
-            <input type="text" class="point-form" value=1>点
+            <input type="text" class="point-form" value=1 #drawPoint>点
             <br>
             <label>負け：</label>
-            <input type="text" class="point-form" value=0>点
+            <input type="text" class="point-form" value=0 #losePoint>点
         </div>
         <div class="winner-setting">
             <label>各グループの上位</label>
@@ -19,7 +19,7 @@
     <div class="other-setting">
         <input type="checkbox">得失点差を考慮する
         <br>
-        <button (click)="updateLeagues()">結果を更新する</button>
+        <button (click)="updateLeagues(winPoint.value, drawPoint.value, losePoint.value)">結果を更新する</button>
     </div>
 </div>
 <hr>
@@ -84,9 +84,9 @@
                     <td class="result-cell" *ngFor="let player2 of getPlayersOfEachGroups(group.id)">
                         {{getMatchResultSymbol(group.id, player1.id, player2.id)}}
                     </td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td>0</td>
+                    <td>{{player1.points}}</td>
+                    <td>{{player1.gains}}</td>
+                    <td>{{player1.losts}}</td>
                     <td>0</td>
                     <td>1</td>
                 </tr>

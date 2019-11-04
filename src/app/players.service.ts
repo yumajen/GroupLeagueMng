@@ -33,6 +33,13 @@ export class PlayersService {
       );
   }
 
+  updatePlayer(updatePlayerInfo: Player): Observable<Player> {
+    return this.http.put<Player>(this.playersUrl, updatePlayerInfo, this.httpOptions)
+      .pipe(
+        catchError(this.handleError<Player>('updatePlayer'))
+      )
+  }
+
   handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
       console.error(error);
