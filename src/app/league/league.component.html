@@ -1,27 +1,29 @@
 <h2>順位計算設定</h2>
-<div class="rate">
-    <div>
-        <div class="point-setting">
-            <label>勝ち：</label>
-            <input type="text" class="point-form" value=3 #winPoint>点
-            <br>
-            <label>分け：</label>
-            <input type="text" class="point-form" value=1 #drawPoint>点
-            <br>
-            <label>負け：</label>
-            <input type="text" class="point-form" value=0 #losePoint>点
+<form [formGroup]="calSettingForm">
+    <div class="rate">
+        <div>
+            <div class="point-setting">
+                <label>勝ち：</label>
+                <input type="text" class="point-form" formControlName="win">点
+                <br>
+                <label>分け：</label>
+                <input type="text" class="point-form" formControlName="draw">点
+                <br>
+                <label>負け：</label>
+                <input type="text" class="point-form" formControlName="lose">点
+            </div>
+            <div class="winner-setting">
+                <label>各グループの上位</label>
+                <input type="text" class="winner-form">人まで勝ち上がり
+            </div>
         </div>
-        <div class="winner-setting">
-            <label>各グループの上位</label>
-            <input type="text" class="winner-form">人まで勝ち上がり
+        <div class="other-setting">
+            <input type="checkbox">得失点差を考慮する
+            <br>
+            <button type="submit" (click)="updateLeagues()">結果を更新する</button>
         </div>
     </div>
-    <div class="other-setting">
-        <input type="checkbox">得失点差を考慮する
-        <br>
-        <button (click)="updateLeagues(winPoint.value, drawPoint.value, losePoint.value)">結果を更新する</button>
-    </div>
-</div>
+</form>
 <hr>
 <h2>リーグ表</h2>
 <div *ngIf="linkages">
@@ -37,22 +39,28 @@
                             <td>
                                 <div class="result">
                                     <button class="result-win"
-                                        (click)="buttonPushedProcessing(0, matchInfo, matchInfo.match[0].id)"
+                                        (click)="inputResult(matchInfo, score1.value, score2.value, 0, matchInfo.match)"
                                         [class.pushed-win]="isPushed(0, matchInfo.id)">
                                         ○
                                     </button>
-                                    <button class="result-draw" (click)="buttonPushedProcessing(1, matchInfo)"
-                                        [class.pushed-draw]="isPushed(1, matchInfo.id)">
+                                    <button class="result-draw"
+                                        (click)="inputResult(matchInfo, score1.value, score2.value, 2)"
+                                        [class.pushed-draw]="isPushed(2, matchInfo.id)">
                                         △
                                     </button>
                                     <button class=" result-win"
-                                        (click)="buttonPushedProcessing(2, matchInfo, matchInfo.match[1].id)"
-                                        [class.pushed-win]="isPushed(2, matchInfo.id)">
+                                        (click)="inputResult(matchInfo, score1.value, score2.value, 1, matchInfo.match)"
+                                        [class.pushed-win]="isPushed(1, matchInfo.id)">
                                         ○
                                     </button>
                                 </div>
-                                <div class=" score">
-                                    <input type="text" class="score-form"> - <input type="text" class="score-form">
+                                <div class="score">
+                                    <input type="text" class="score-form" value="{{matchInfo.score1}}"
+                                        (blur)="inputResult(matchInfo, score1.value, score2.value, null, matchInfo.match)"
+                                        #score1> -
+                                    <input type="text" class="score-form" value="{{matchInfo.score2}}"
+                                        (blur)="inputResult(matchInfo, score1.value, score2.value, null, matchInfo.match)"
+                                        #score2>
                                 </div>
                             </td>
                             <td>{{matchInfo.match[1].name}}</td>
@@ -87,7 +95,7 @@
                     <td>{{player1.points}}</td>
                     <td>{{player1.gains}}</td>
                     <td>{{player1.losts}}</td>
-                    <td>0</td>
+                    <td>{{player1.gains - player1.losts}}</td>
                     <td>1</td>
                 </tr>
             </table>

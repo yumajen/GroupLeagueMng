@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { FormBuilder } from '@angular/forms';
 import { Player } from '../player';
 import { Group } from '../group';
 import { Linkage } from '../linkage';
@@ -20,6 +21,18 @@ const RESULT_SYMBOL = {
 })
 export class LeagueComponent implements OnInit {
 
+  // 勝ち点、順位計算条件設定用のフォーム(数値は初期値)
+  calSettingForm = this.fb.group({
+    win: [3],
+    draw: [1],
+    lose: [0],
+  });
+
+  scoreForm = this.fb.group({
+    score1: [''],
+    score2: [''],
+  });
+
   players: Player[];
   groups: Group[];
   linkages: Linkage[];
@@ -39,6 +52,7 @@ export class LeagueComponent implements OnInit {
     private playersService: PlayersService,
     private groupsService: GroupsService,
     private matchesService: MatchesService,
+    private fb: FormBuilder,
     public changeDetectorRef: ChangeDetectorRef,
   ) { }
 
@@ -78,7 +92,7 @@ export class LeagueComponent implements OnInit {
     this.matchesService.getMatcheInformations().subscribe(
       (matchInformations) => {
         this.matchInformations = matchInformations;
-        this.calculatePoints();
+        this.calculateGrades();
       }
     );
   }
@@ -234,6 +248,8 @@ export class LeagueComponent implements OnInit {
         match: match,
         winnerId: null,
         isDraw: false,
+        score1: null,
+        score2: null
       };
       this.matchesService.registMatcheInformation(inputMatchInfo as MatchInformation)
         .subscribe(
@@ -290,12 +306,43 @@ export class LeagueComponent implements OnInit {
     return resultSymbol;
   }
 
-  buttonPushedProcessing(buttonIndex: number, matchInfo: MatchInformation, playerId?: number): void {
-    this.changeButtonStatus(matchInfo.id, buttonIndex);
-    this.setResult(matchInfo, playerId);
+  inputResult(matchInfo: MatchInformation, score1: number, score2: number, buttonIndex: number, match: Player[] = null): void {
+    let winnerId: number;
+    let isScoreFilled: boolean = !!score1 && !!score2;
+
+    // 結果ボタンの押下なし、かつプレイヤー1, 2共に得点の入力がない場合は結果の登録を行わない
+    if (buttonIndex == undefined && !isScoreFilled) {
+      return;
+    }
+
+    // プレイヤー1, 2共に得点の入力がある場合にボタンを押下しても結果の登録を行わない
+    if (buttonIndex && isScoreFilled) {
+      return;
+    }
+
+    if (match) {
+      winnerId = match[buttonIndex] ? match[buttonIndex].id : null;
+    }
+
+    // 得点が入力されている場合の処理
+    if (isScoreFilled && match) {
+      // 得点に応じたボタンの押下状態及び勝敗計算になる
+      if (score1 > score2) {
+        buttonIndex = 0; // player1が勝利
+        winnerId = match[buttonIndex].id;
+      } else if (score1 < score2) {
+        buttonIndex = 1; // player2が勝利
+        winnerId = match[buttonIndex].id;
+      } else {
+        buttonIndex = 2; // 引き分け
+      }
+    }
+
+    this.changeButtonStatus(matchInfo.id, buttonIndex, isScoreFilled);
+    this.setResult(matchInfo, score1, score2, isScoreFilled, winnerId);
   }
 
-  changeButtonStatus(matchInfoId: number, buttonIndex: number): void {
+  changeButtonStatus(matchInfoId: number, buttonIndex: number, isScoreFilled: boolean): void {
     // 同じ対戦組合せ内ではボタンの押下状態は排他的にする
     let isSameButton = false;
     this.pushedButtons.some((button, i) => {
@@ -304,8 +351,8 @@ export class LeagueComponent implements OnInit {
         isSameButton = button.index == buttonIndex;
       }
     });
-    // 既に押下状態のボタンを再度押下する場合はメソッドを抜ける
-    if (isSameButton) {
+    // 既に押下状態のボタンを再度押下する場合はメソッドを抜ける(ただし得点の入力がある場合は抜けない)
+    if (isSameButton && !isScoreFilled) {
       return;
     }
 
@@ -328,7 +375,7 @@ export class LeagueComponent implements OnInit {
     return target && target.index == buttonIndex;
   }
 
-  setResult(matchInfo: MatchInformation, playerId?: number): void {
+  setResult(matchInfo: MatchInformation, score1: number, score2: number, isScoreFilled: boolean, playerId?: number): void {
     let winnerId: number;
     let isDraw: boolean = false;
 
@@ -345,8 +392,8 @@ export class LeagueComponent implements OnInit {
         isSameButton = result.winnerId == playerId || isDraw;
       }
     });
-    // 既に押下状態のボタンを再度押下する場合はメソッドを抜ける
-    if (isSameButton) {
+    // 既に押下状態のボタンを再度押下する場合はメソッドを抜ける(ただし得点の入力がある場合は抜けない)
+    if (isSameButton && !isScoreFilled) {
       return;
     }
 
@@ -356,7 +403,9 @@ export class LeagueComponent implements OnInit {
       roundNumber: matchInfo.roundNumber,
       match: matchInfo.match,
       winnerId: winnerId,
-      isDraw: isDraw
+      isDraw: isDraw,
+      score1: score1 ? Number(score1) : null,
+      score2: score2 ? Number(score2) : null
     }
     this.matcheResults.push(updateInfo);
     this.sortArrayAscendingOrder(this.matcheResults);
@@ -376,13 +425,7 @@ export class LeagueComponent implements OnInit {
     });
   }
 
-  updateLeagues(winPoint: number, drawPoint: number, losePoint: number): void {
-    this.point = {
-      win: winPoint,
-      draw: drawPoint,
-      lose: losePoint
-    };
-
+  updateLeagues(): void {
     this.matcheResults.forEach((result) => {
       this.updateMatchInformation(result);
     });
@@ -391,7 +434,7 @@ export class LeagueComponent implements OnInit {
     this.matcheResults = [];
   }
 
-  calculatePoints(): void {
+  calculateGrades(): void {
     this.players.forEach((player) => {
       // 当該プレイヤーが関わる対戦のみを抽出
       let targetResults = this.matchInformations.filter((info) => {
@@ -405,29 +448,57 @@ export class LeagueComponent implements OnInit {
       if (targetResults.length == 0) {
         return;
       }
-      // 勝ち数のカウント
-      let winCount = targetResults.filter((result) => {
-        if (result.winnerId == player.id) {
-          return result;
-        }
-      }).length;
-      // 引き分け数のカウント
-      let drawCount = targetResults.filter((result) => {
-        if (result.isDraw) {
-          return result;
-        }
-      }).length;
-      // 負け数のカウント = 当該プレイヤーが関わる対戦数 - 勝ち数 - 引き分け数
-      let loseCount = targetResults.length - winCount - drawCount;
 
+      let points = this.calculatePoints(player, targetResults);
+      let score = this.calculateScore(player, targetResults);
       let updatePlayerInfo = JSON.parse(JSON.stringify(player));
-      let points = winCount * this.point.win + drawCount * this.point.draw + loseCount * this.point.lose;
+      updatePlayerInfo['gains'] = score.gains;
+      updatePlayerInfo['losts'] = score.losts;
       updatePlayerInfo['points'] = points;
 
       this.updatePlayer(updatePlayerInfo);
     });
 
     this.getPlayers();
+  }
+
+  calculatePoints(player: Player, targetResults: MatchInformation[]): number {
+    // 勝ち数のカウント
+    let winCount = targetResults.filter((result) => {
+      if (result.winnerId == player.id) {
+        return result;
+      }
+    }).length;
+    // 引き分け数のカウント
+    let drawCount = targetResults.filter((result) => {
+      if (result.isDraw) {
+        return result;
+      }
+    }).length;
+    // 負け数のカウント = 当該プレイヤーが関わる対戦数 - 勝ち数 - 引き分け数
+    let loseCount = targetResults.length - winCount - drawCount;
+
+    let winPoint = Number(this.calSettingForm.value.win);
+    let drawPoint = Number(this.calSettingForm.value.draw);
+    let losePoint = Number(this.calSettingForm.value.lose);
+    return winCount * winPoint + drawCount * drawPoint + loseCount * losePoint;
+  }
+
+  calculateScore(player: Player, targetResults: MatchInformation[]): any {
+    let totalGains: number = 0;
+    let totalLosts: number = 0;
+
+    targetResults.forEach((result) => {
+      // 得点が未入力の場合は加算しない
+      if (result.score1 == undefined || result.score2 == undefined) {
+        return;
+      }
+      let gains = result.match[0].id == player.id ? result.score1 : result.score2;
+      let losts = result.match[0].id == player.id ? result.score2 : result.score1;
+      totalGains += gains;
+      totalLosts += losts;
+    });
+    return { gains: totalGains, losts: totalLosts };
   }
 
 }
