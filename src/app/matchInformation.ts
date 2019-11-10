@@ -7,4 +7,6 @@ export class MatchInformation {
     match: any;
     winnerId: number;
     isDraw: boolean;
+    score1: number;
+    score2: number;
 }
