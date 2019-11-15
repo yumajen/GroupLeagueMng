@@ -127,7 +127,7 @@ export class LeagueComponent implements OnInit {
       });
     });
 
-    this.sortArrayAscendingOrder(eachPlayers);
+    this.sortArray(eachPlayers, 'asc');
 
     return eachPlayers;
   }
@@ -181,7 +181,15 @@ export class LeagueComponent implements OnInit {
 
   drawLotsCombination(groupId: number, roundNumber: number): any[] {
     let matches = [];
-    let dummyPlayer: Player = { id: 999, name: 'dummy', otherItems: {} };
+    let dummyPlayer: Player = {
+      id: 999,
+      name: 'dummy',
+      otherItems: {},
+      gains: null,
+      losts: null,
+      points: null,
+      rank: null
+    };
 
     if (roundNumber == 1) {
       this.containedPlayers = this.getPlayersOfEachGroups(groupId);
@@ -362,7 +370,7 @@ export class LeagueComponent implements OnInit {
         index: buttonIndex
       }
     )
-    this.sortArrayAscendingOrder(this.pushedButtons);
+    this.sortArray(this.pushedButtons, 'asc');
   }
 
   isPushed(buttonIndex: number, matchInfoId: number): boolean {
@@ -408,17 +416,17 @@ export class LeagueComponent implements OnInit {
       score2: score2 ? Number(score2) : null
     }
     this.matcheResults.push(updateInfo);
-    this.sortArrayAscendingOrder(this.matcheResults);
+    this.sortArray(this.matcheResults, 'asc');
   }
 
-  sortArrayAscendingOrder(array: any[]): void {
+  sortArray(array: any[], direction: string): void {
     array.sort(function (a, b) {
       let ida = a.id;
       let idb = b.id;
-      if (ida < idb) {
+      if ((direction == 'asc' && ida < idb) || (direction == 'disc' && ida > idb)) {
         return -1;
       }
-      if (ida > idb) {
+      if ((direction == 'asc' && ida > idb) || (direction == 'disc' && ida < idb)) {
         return 1;
       }
       return 0;
@@ -435,6 +443,8 @@ export class LeagueComponent implements OnInit {
   }
 
   calculateGrades(): void {
+    let updatePlayerInfo: any[] = []; // プレイヤー情報更新用パラメータ配列
+
     this.players.forEach((player) => {
       // 当該プレイヤーが関わる対戦のみを抽出
       let targetResults = this.matchInformations.filter((info) => {
@@ -449,14 +459,23 @@ export class LeagueComponent implements OnInit {
         return;
       }
 
+      // 勝ち点、得失点を計算し、プレイヤー情報更新用パラメータを作成する
       let points = this.calculatePoints(player, targetResults);
       let score = this.calculateScore(player, targetResults);
-      let updatePlayerInfo = JSON.parse(JSON.stringify(player));
-      updatePlayerInfo['gains'] = score.gains;
-      updatePlayerInfo['losts'] = score.losts;
-      updatePlayerInfo['points'] = points;
+      let playerInfo = JSON.parse(JSON.stringify(player));
+      playerInfo['gains'] = score.gains;
+      playerInfo['losts'] = score.losts;
+      playerInfo['points'] = points;
 
-      this.updatePlayer(updatePlayerInfo);
+      updatePlayerInfo.push(playerInfo)
+    });
+
+    // 順位を計算し、プレイヤー情報更新用パラメータを更新する
+    this.calculateRank(updatePlayerInfo)
+
+    // 上記で設定したパラメータでプレイヤー情報を更新
+    updatePlayerInfo.forEach((playerInfo) => {
+      this.updatePlayer(playerInfo);
     });
 
     this.getPlayers();
@@ -501,4 +520,42 @@ export class LeagueComponent implements OnInit {
     return { gains: totalGains, losts: totalLosts };
   }
 
+  calculateRank(updatePlayerInfo: any[]) {
+    // グループ毎に順位を計算し、プレイヤー情報更新用パラメータに追加
+    this.groups.forEach((group) => {
+      let eachPlayers = this.getPlayersOfEachGroups(group.id);
+      // グループに含まれるプレイヤー情報の更新パラメータを抽出
+      let targetUpdatePlayerInfo = updatePlayerInfo.filter((playerInfo) => {
+        let targetPlayerInfo = eachPlayers.find((player) => {
+          if (player.id == playerInfo.id) {
+            return playerInfo;
+          }
+        });
+        return targetPlayerInfo;
+      });
+      // 勝ち点を格納した配列を作成
+      let points = targetUpdatePlayerInfo.map((playerInfo) => {
+        return playerInfo.points;
+      });
+      points.sort((a, b) => {
+        return b - a;
+      });
+      // 勝ち点配列の重複を削除
+      let uniquePoints = points.filter((p, i, self) => {
+        return self.indexOf(p) == i;
+      });
+      // 同じグループ内で同じ勝ち点のプレイヤーを抽出し、ランクを設定していく
+      let rank = 1;
+      uniquePoints.forEach((point) => {
+        let targetInfo = targetUpdatePlayerInfo.filter((playerInfo) => {
+          return playerInfo.points == point;
+        });
+        targetInfo.forEach((info) => {
+          info['rank'] = rank;
+        });
+        rank += targetInfo.length
+      });
+    });
+
+  }
 }
