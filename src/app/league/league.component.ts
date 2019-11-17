@@ -26,6 +26,7 @@ export class LeagueComponent implements OnInit {
     win: [3],
     draw: [1],
     lose: [0],
+    isConsiderDifference: [true],
   });
 
   scoreForm = this.fb.group({
@@ -547,13 +548,41 @@ export class LeagueComponent implements OnInit {
       // 同じグループ内で同じ勝ち点のプレイヤーを抽出し、ランクを設定していく
       let rank = 1;
       uniquePoints.forEach((point) => {
-        let targetInfo = targetUpdatePlayerInfo.filter((playerInfo) => {
+        let targetInfoPoint = targetUpdatePlayerInfo.filter((playerInfo) => {
           return playerInfo.points == point;
         });
-        targetInfo.forEach((info) => {
-          info['rank'] = rank;
-        });
-        rank += targetInfo.length
+
+        if (this.calSettingForm.value.isConsiderDifference) {
+          // 順位計算で得失点差を考慮する場合
+          // 得失点差を格納した配列を作成
+          let differences = targetInfoPoint.map((info) => {
+            return info.gains - info.losts;
+          });
+          // 得失点差配列の重複を削除
+          let uniqueDifferences = differences.filter((d, i, self) => {
+            return self.indexOf(d) == i;
+          });
+          // 得失点差の降順に並べ変える
+          uniqueDifferences = uniqueDifferences.sort((a, b) => {
+            return b - a;
+          });
+          // 同じ勝ち点で同じ得失点差のプレイヤーを抽出し、ランクを設定していく
+          uniqueDifferences.forEach((diff) => {
+            let targetInfoDiff = targetInfoPoint.filter((playerInfo) => {
+              return playerInfo.gains - playerInfo.losts == diff;
+            });
+            targetInfoDiff.forEach((info) => {
+              info['rank'] = rank;
+            });
+            rank += targetInfoDiff.length;
+          });
+        } else {
+          // 順位計算で得失点差を考慮しない場合
+          targetInfoPoint.forEach((info) => {
+            info['rank'] = rank;
+          });
+          rank += targetInfoPoint.length;
+        }
       });
     });
 
