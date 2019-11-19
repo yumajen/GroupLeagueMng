@@ -27,6 +27,7 @@ export class LeagueComponent implements OnInit {
     draw: [1],
     lose: [0],
     isConsiderDifference: [true],
+    isConsiderTotalGains: [true],
   });
 
   scoreForm = this.fb.group({
@@ -552,8 +553,8 @@ export class LeagueComponent implements OnInit {
           return playerInfo.points == point;
         });
 
+        // 順位計算で得失点差を考慮する場合
         if (this.calSettingForm.value.isConsiderDifference) {
-          // 順位計算で得失点差を考慮する場合
           // 得失点差を格納した配列を作成
           let differences = targetInfoPoint.map((info) => {
             return info.gains - info.losts;
@@ -583,8 +584,38 @@ export class LeagueComponent implements OnInit {
           });
           rank += targetInfoPoint.length;
         }
+
+        // 順位計算で総得点数を考慮する場合
+        if (this.calSettingForm.value.isConsiderTotalGains) {
+          // 順位を格納した配列を作成
+          let ranks = targetUpdatePlayerInfo.map((playerInfo) => {
+            return playerInfo.rank;
+          });
+          // 複数のプレイヤーが該当する順位のみ抽出
+          let duplicateRanks = ranks.filter((rank, i, self) => {
+            return self.indexOf(rank) !== self.lastIndexOf(rank);
+          });
+
+          duplicateRanks.forEach((rank) => {
+            // 順位が同じプレイヤーを抽出
+            let sameRankPlayerInfos = targetUpdatePlayerInfo.filter((player) => {
+              return player.rank == rank;
+            });
+
+            sameRankPlayerInfos.sort(function (a, b) {
+              let gainsA = a.gains;
+              let gainsB = b.gains;
+              return gainsB - gainsA;
+            });
+
+            sameRankPlayerInfos.forEach((playerInfo) => {
+              playerInfo['rank'] = rank;
+              rank += 1;
+            });
+          });
+        }
+
       });
     });
-
   }
 }
