@@ -522,12 +522,15 @@ export class LeagueComponent implements OnInit {
     return { gains: totalGains, losts: totalLosts };
   }
 
-  calculateRank(updatePlayerInfo: any[]) {
+  calculateRank(updatePlayerInfo: any[]): void {
+    // 順位計算条件の設定(勝ち点の考慮は必ず)
+    let compareProperties = this.getCompareProperties();
+
     // グループ毎に順位を計算し、プレイヤー情報更新用パラメータに追加
     this.groups.forEach((group) => {
       let eachPlayers = this.getPlayersOfEachGroups(group.id);
       // グループに含まれるプレイヤー情報の更新パラメータを抽出
-      let targetUpdatePlayerInfo = updatePlayerInfo.filter((playerInfo) => {
+      let containedPlayerInfo = updatePlayerInfo.filter((playerInfo) => {
         let targetPlayerInfo = eachPlayers.find((player) => {
           if (player.id == playerInfo.id) {
             return playerInfo;
@@ -535,87 +538,79 @@ export class LeagueComponent implements OnInit {
         });
         return targetPlayerInfo;
       });
-      // 勝ち点を格納した配列を作成
-      let points = targetUpdatePlayerInfo.map((playerInfo) => {
-        return playerInfo.points;
-      });
-      points.sort((a, b) => {
-        return b - a;
-      });
-      // 勝ち点配列の重複を削除
-      let uniquePoints = points.filter((p, i, self) => {
-        return self.indexOf(p) == i;
-      });
-      // 同じグループ内で同じ勝ち点のプレイヤーを抽出し、ランクを設定していく
-      let rank = 1;
-      uniquePoints.forEach((point) => {
-        let targetInfoPoint = targetUpdatePlayerInfo.filter((playerInfo) => {
-          return playerInfo.points == point;
+      this.resetRank(containedPlayerInfo);
+
+      // 各比較要素毎に以下の順位決定処理を繰り返す
+      compareProperties.forEach((compareProperty) => {
+        // 順位を格納した配列を作成
+        let ranks = containedPlayerInfo.map((playerInfo) => {
+          return playerInfo.rank;
+        });
+        // ranksの重複を削除
+        let uniqueRanks = ranks.filter((rank, i, self) => {
+          return self.indexOf(rank) == i;
+        });
+        // uniqueRanksを昇順に並べ変える
+        uniqueRanks = uniqueRanks.sort((a, b) => {
+          return a - b;
         });
 
-        // 順位計算で得失点差を考慮する場合
-        if (this.calSettingForm.value.isConsiderDifference) {
-          // 得失点差を格納した配列を作成
-          let differences = targetInfoPoint.map((info) => {
-            return info.gains - info.losts;
+        uniqueRanks.forEach((duplicateRank) => {
+          // 順位が同じプレイヤー更新パラメータを抽出
+          let sameRankPlayerInfos = containedPlayerInfo.filter((player) => {
+            return player.rank == duplicateRank;
           });
-          // 得失点差配列の重複を削除
-          let uniqueDifferences = differences.filter((d, i, self) => {
+          // 比較要素の値の大小に応じて順位づけする
+          // 比較値を格納した配列を作成
+          let compareValues = sameRankPlayerInfos.map((info) => {
+            return compareProperty.comp(info);
+          });
+          // 比較値配列の重複を削除
+          let uniqueCompareValues = compareValues.filter((d, i, self) => {
             return self.indexOf(d) == i;
           });
-          // 得失点差の降順に並べ変える
-          uniqueDifferences = uniqueDifferences.sort((a, b) => {
+          // 比較値の降順に並べ変える
+          uniqueCompareValues = uniqueCompareValues.sort((a, b) => {
             return b - a;
           });
-          // 同じ勝ち点で同じ得失点差のプレイヤーを抽出し、ランクを設定していく
-          uniqueDifferences.forEach((diff) => {
-            let targetInfoDiff = targetInfoPoint.filter((playerInfo) => {
-              return playerInfo.gains - playerInfo.losts == diff;
+          // 比較値が同じプレイヤーには同じ順位を設定していく
+          uniqueCompareValues.forEach((compareValue) => {
+            let sameValuePlayerInfos = sameRankPlayerInfos.filter((playerInfo) => {
+              return compareProperty.comp(playerInfo) == compareValue;
             });
-            targetInfoDiff.forEach((info) => {
-              info['rank'] = rank;
+            sameValuePlayerInfos.forEach((playerInfo) => {
+              playerInfo['rank'] = duplicateRank;
             });
-            rank += targetInfoDiff.length;
+            duplicateRank += sameValuePlayerInfos.length;
           });
-        } else {
-          // 順位計算で得失点差を考慮しない場合
-          targetInfoPoint.forEach((info) => {
-            info['rank'] = rank;
-          });
-          rank += targetInfoPoint.length;
-        }
-
-        // 順位計算で総得点数を考慮する場合
-        if (this.calSettingForm.value.isConsiderTotalGains) {
-          // 順位を格納した配列を作成
-          let ranks = targetUpdatePlayerInfo.map((playerInfo) => {
-            return playerInfo.rank;
-          });
-          // 複数のプレイヤーが該当する順位のみ抽出
-          let duplicateRanks = ranks.filter((rank, i, self) => {
-            return self.indexOf(rank) !== self.lastIndexOf(rank);
-          });
-
-          duplicateRanks.forEach((rank) => {
-            // 順位が同じプレイヤーを抽出
-            let sameRankPlayerInfos = targetUpdatePlayerInfo.filter((player) => {
-              return player.rank == rank;
-            });
-
-            sameRankPlayerInfos.sort(function (a, b) {
-              let gainsA = a.gains;
-              let gainsB = b.gains;
-              return gainsB - gainsA;
-            });
-
-            sameRankPlayerInfos.forEach((playerInfo) => {
-              playerInfo['rank'] = rank;
-              rank += 1;
-            });
-          });
-        }
-
+        });
       });
+    });
+  }
+
+  getCompareProperties(): any[] {
+    let compareProperties = [];
+
+    // 勝ち点を考慮(必ず実施される)
+    compareProperties.push({ comp: p => p.points });
+
+    // 得失点差を考慮
+    if (this.calSettingForm.value.isConsiderDifference) {
+      compareProperties.push({ comp: p => p.gains - p.losts });
+    }
+
+    // 総得点数を考慮
+    if (this.calSettingForm.value.isConsiderTotalGains) {
+      compareProperties.push({ comp: p => p.gains });
+    }
+
+    return compareProperties;
+  }
+
+  resetRank(playerInfos: any[]): void {
+    // 順位計算の前にグループ内全プレイヤーの順位をリセットする
+    playerInfos.forEach((playerInfo) => {
+      playerInfo.rank = 1;
     });
   }
 }
