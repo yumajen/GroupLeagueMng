@@ -18,13 +18,21 @@
             </div>
         </div>
         <div class="other-setting">
-            <input type="checkbox" formControlName="isConsiderDifference">得失点差を考慮する
+            <input type="checkbox" formControlName="isConsiderDifference">[1] 得失点差を考慮する
             <br>
-            <input type="checkbox" formControlName="isConsiderTotalGains">総得点数を考慮する
+            <input type="checkbox" formControlName="isConsiderTotalGains">[2] 総得点数を考慮する
             <br>
-            <button type="submit" (click)="updateLeagues()">結果を更新する</button>
+            <input type="checkbox" formControlName="isConsiderDirectMatch">[3] 直接対決の勝敗を考慮する
+            <br>
         </div>
     </div>
+    <div class="discription">
+        <p>
+            各プレイヤーの順位は「勝ち点数 > [1] 得失点差 > [2] 総得点数 > [3] 直接対決の勝敗」の順で決定されます。<br>
+            [1]〜[3]の条件を考慮するかどうかはチェックボックスのON/OFFで任意に設定可能です。
+        </p>
+    </div>
+    <button type="submit" (click)="updateLeagues()">結果を更新する</button>
 </form>
 <hr>
 <h2>リーグ表</h2>
