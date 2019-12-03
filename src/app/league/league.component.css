@@ -118,3 +118,9 @@ button[class^="result-"]:active {
 .result-cell {
   text-align: center;
 }
+
+/* 説明 */
+.discription {
+  font-size: 13px;
+  color: gray;
+}

@@ -28,6 +28,7 @@ export class LeagueComponent implements OnInit {
     lose: [0],
     isConsiderDifference: [true],
     isConsiderTotalGains: [true],
+    isConsiderDirectMatch: [true],
   });
 
   scoreForm = this.fb.group({
@@ -583,6 +584,60 @@ export class LeagueComponent implements OnInit {
             });
             duplicateRank += sameValuePlayerInfos.length;
           });
+        });
+      });
+
+      // 同順位が存在する場合、直接対決の結果を考慮する
+      if (!this.calSettingForm.value.isConsiderDirectMatch) {
+        return;
+      }
+      let ranks = containedPlayerInfo.map((playerInfo) => {
+        return playerInfo.rank;
+      });
+      // 複数のプレイヤーが該当する順位のみ抽出
+      let duplicateRanks = ranks.filter((rank, i, self) => {
+        return self.indexOf(rank) !== self.lastIndexOf(rank);
+      });
+
+      duplicateRanks.forEach((rank) => {
+        // 順位が同じプレイヤーを抽出
+        let sameRankPlayers = containedPlayerInfo.filter((player) => {
+          return player.rank == rank;
+        });
+
+        let additionalRankInfos = sameRankPlayers.map((player) => {
+          return { player: player, additionalRank: 0 };
+        });
+
+        let matchInformationsCopy = Array.from(this.matchInformations);
+        additionalRankInfos.forEach((rankInfo1) => {
+          let player1Id = rankInfo1.player.id;
+          additionalRankInfos.forEach((rankInfo2) => {
+            let player2Id = rankInfo2.player.id
+            if (player1Id == player2Id) {
+              return;
+            }
+            let targetMatch = matchInformationsCopy.find((matchInfo, i) => {
+              if (matchInfo.match[0].id == player1Id && matchInfo.match[1].id == player2Id ||
+                matchInfo.match[0].id == player2Id && matchInfo.match[1].id == player1Id) {
+                matchInformationsCopy.splice(i, 1);
+                return matchInfo;
+              }
+            });
+
+            if (!targetMatch) {
+              return;
+            }
+            if (targetMatch.winnerId == player1Id) {
+              rankInfo2.additionalRank += 1;
+            } else if (targetMatch.winnerId == player2Id) {
+              rankInfo1.additionalRank += 1
+            }
+          });
+        });
+
+        additionalRankInfos.forEach((rankInfo) => {
+          rankInfo.player.rank += rankInfo.additionalRank;
         });
       });
     });
