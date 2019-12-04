@@ -29,6 +29,7 @@ export class LeagueComponent implements OnInit {
     isConsiderDifference: [true],
     isConsiderTotalGains: [true],
     isConsiderDirectMatch: [true],
+    winnerRanks: [1],
   });
 
   scoreForm = this.fb.group({
@@ -191,7 +192,8 @@ export class LeagueComponent implements OnInit {
       gains: null,
       losts: null,
       points: null,
-      rank: null
+      rank: null,
+      isSuperior: false,
     };
 
     if (roundNumber == 1) {
@@ -476,6 +478,9 @@ export class LeagueComponent implements OnInit {
     // 順位を計算し、プレイヤー情報更新用パラメータを更新する
     this.calculateRank(updatePlayerInfo)
 
+    // 各プレイヤーについて、現在の順位で優勝または次ステージへ進出可能かどうかを判定する
+    this.decideSuperior(updatePlayerInfo);
+
     // 上記で設定したパラメータでプレイヤー情報を更新
     updatePlayerInfo.forEach((playerInfo) => {
       this.updatePlayer(playerInfo);
@@ -667,5 +672,28 @@ export class LeagueComponent implements OnInit {
     playerInfos.forEach((playerInfo) => {
       playerInfo.rank = 1;
     });
+  }
+
+  decideSuperior(updatePlayerInfo: any[]): void {
+    updatePlayerInfo.forEach((playerInfo) => {
+      // 「現在の順位 <= 勝上がり可能順位」の場合はtrue
+      playerInfo.isSuperior = playerInfo.rank <= Number(this.calSettingForm.value.winnerRanks);
+    });
+  }
+
+  isSuperiorOfFinalRound(groupId: number, isSuperior: boolean): boolean {
+    // 各グループで既に終了した対戦数
+    let numberOfMatches = this.matchInformations.filter((info) => {
+      if (info.groupId == groupId && (info.winnerId || info.isDraw)) {
+        return info;
+      };
+    }).length;
+
+    // 各グループの人数
+    let numberOfPlayers = this.getPlayersOfEachGroups(groupId).length;
+    // 各グループの最大対戦数
+    let maxMatches = (numberOfPlayers - 1) * numberOfPlayers / 2;
+
+    return isSuperior && numberOfMatches == maxMatches;
   }
 }
