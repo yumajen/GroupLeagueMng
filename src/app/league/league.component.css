@@ -118,6 +118,9 @@ button[class^="result-"]:active {
 .result-cell {
   text-align: center;
 }
+.superior {
+  background-color: #ff8686;
+}
 
 /* 説明 */
 .discription {

@@ -13,8 +13,8 @@
                 <input type="text" class="point-form" formControlName="lose">点
             </div>
             <div class="winner-setting">
-                <label>各グループの上位</label>
-                <input type="text" class="winner-form">人まで勝ち上がり
+                <label>各グループの</label>
+                <input type="text" class="winner-form" formControlName="winnerRanks">位までが勝ち上がる
             </div>
         </div>
         <div class="other-setting">
@@ -95,7 +95,8 @@
                     <td>得失点差</td>
                     <td>順位</td>
                 </tr>
-                <tr *ngFor="let player1 of getPlayersOfEachGroups(group.id)">
+                <tr *ngFor="let player1 of getPlayersOfEachGroups(group.id)"
+                    [class.superior]="isSuperiorOfFinalRound(group.id, player1.isSuperior)">
                     <td>
                         {{player1.name}}<mat-icon class="info">info</mat-icon>
                     </td>

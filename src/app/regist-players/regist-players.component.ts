@@ -28,7 +28,8 @@ export class RegistPlayersComponent implements OnInit {
         gains: null,
         losts: null,
         points: null,
-        rank: 1
+        rank: 1,
+        isSuperior: false,
       }
     );
     this.checkedInformations = [];
@@ -60,7 +61,8 @@ export class RegistPlayersComponent implements OnInit {
         gains: null,
         losts: null,
         points: null,
-        rank: 1
+        rank: 1,
+        isSuperior: false,
       }
     );
   }
