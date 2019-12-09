@@ -33,8 +33,11 @@ table {
 }
 
 /* 組み合わせ表エリア */
-.round {
+.match-parts {
   margin: 0 auto;
+  margin-bottom: 3px;
+  border: solid #a9a9a9 1px;
+  width: 95%;
 }
 .match-list {
   border: solid #a9a9a9 1px;
@@ -45,6 +48,13 @@ table {
   overflow-y: scroll;
   float: left;
   text-align: center;
+}
+.match-player {
+  vertical-align: middle;
+  width: 35%;
+}
+.match-forms {
+  width: 30%;
 }
 .result {
   margin-bottom: 2px;
