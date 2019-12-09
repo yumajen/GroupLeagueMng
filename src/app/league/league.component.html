@@ -43,10 +43,10 @@
             <div *ngFor="let round of getRoundNumber(group.id); let i = index;">
                 <p>------- 第{{i + 1}}回戦 -------</p>
                 <div *ngFor="let matchInfo of getMatchInformationsOfEachGroups(group.id, i + 1)">
-                    <table class="round">
+                    <table class="match-parts">
                         <tr>
-                            <td>{{matchInfo.match[0].name}}</td>
-                            <td>
+                            <td class="match-player">{{matchInfo.match[0].name}}</td>
+                            <td class="match-forms">
                                 <div class="result">
                                     <button class="result-win"
                                         (click)="inputResult(matchInfo, score1.value, score2.value, 0, matchInfo.match)"
@@ -73,11 +73,11 @@
                                         #score2>
                                 </div>
                             </td>
-                            <td>{{matchInfo.match[1].name}}</td>
+                            <td class="match-player">{{matchInfo.match[1].name}}</td>
                         </tr>
                     </table>
                 </div>
-                <div class="round">
+                <div class="match-break">
                     {{getBreakPlayerMessage(group.id, i + 1)}}
                 </div>
             </div>
@@ -89,7 +89,7 @@
                     <td *ngFor="let player of getPlayersOfEachGroups(group.id)">
                         {{player.name}}
                     </td>
-                    <td>勝ち点</td>
+                    <td>勝点</td>
                     <td>得点</td>
                     <td>失点</td>
                     <td>得失点差</td>
