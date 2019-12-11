@@ -11,13 +11,15 @@ import { HttpClientModule } from '@angular/common/http';
 import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
 import { InMemoryDataService } from './in-memory-data.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatchListsComponent } from './match-lists/match-lists.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     RegistPlayersComponent,
     ShuffleComponent,
-    LeagueComponent
+    LeagueComponent,
+    MatchListsComponent
   ],
   imports: [
     BrowserModule,

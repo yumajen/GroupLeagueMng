@@ -39,49 +39,9 @@
 <div *ngIf="linkages">
     <div id="group-1" *ngFor="let group of groups">
         <h3 *ngIf="group">{{group.name}}</h3>
-        <div class="match-list" *ngIf="matchInformations">
-            <div *ngFor="let round of getRoundNumber(group.id); let i = index;">
-                <p>------- 第{{i + 1}}回戦 -------</p>
-                <div *ngFor="let matchInfo of getMatchInformationsOfEachGroups(group.id, i + 1)">
-                    <table class="match-parts">
-                        <tr>
-                            <td class="match-player">{{matchInfo.match[0].name}}</td>
-                            <td class="match-forms">
-                                <div class="result">
-                                    <button class="result-win"
-                                        (click)="inputResult(matchInfo, score1.value, score2.value, 0, matchInfo.match)"
-                                        [class.pushed-win]="isPushed(0, matchInfo.id)">
-                                        ○
-                                    </button>
-                                    <button class="result-draw"
-                                        (click)="inputResult(matchInfo, score1.value, score2.value, 2)"
-                                        [class.pushed-draw]="isPushed(2, matchInfo.id)">
-                                        △
-                                    </button>
-                                    <button class=" result-win"
-                                        (click)="inputResult(matchInfo, score1.value, score2.value, 1, matchInfo.match)"
-                                        [class.pushed-win]="isPushed(1, matchInfo.id)">
-                                        ○
-                                    </button>
-                                </div>
-                                <div class="score">
-                                    <input type="text" class="score-form" value="{{matchInfo.score1}}"
-                                        (blur)="inputResult(matchInfo, score1.value, score2.value, null, matchInfo.match)"
-                                        #score1> -
-                                    <input type="text" class="score-form" value="{{matchInfo.score2}}"
-                                        (blur)="inputResult(matchInfo, score1.value, score2.value, null, matchInfo.match)"
-                                        #score2>
-                                </div>
-                            </td>
-                            <td class="match-player">{{matchInfo.match[1].name}}</td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="match-break">
-                    {{getBreakPlayerMessage(group.id, i + 1)}}
-                </div>
-            </div>
-        </div>
+        <app-match-lists [group]="group" [players]="players" [linkages]="linkages"
+            (matcheResultsUpdated)="updateMatchResults($event)">
+        </app-match-lists>
         <div class="league">
             <table border=1 *ngIf="matchInformations">
                 <tr>

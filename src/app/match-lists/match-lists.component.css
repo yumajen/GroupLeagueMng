@@ -1,0 +1,96 @@
+/* 共通 */
+button {
+    border-radius: 5px;
+    font-weight: bold;
+    outline: none;
+  }
+  button:hover {
+    cursor: pointer;
+  }
+  div[id^="group-"] {
+    overflow: hidden;
+  }
+  table {
+    border-collapse: collapse;
+  }
+
+/* 組み合わせ表エリア */
+.match-parts {
+    margin: 0 auto;
+    margin-bottom: 3px;
+    border: solid #a9a9a9 1px;
+    width: 95%;
+  }
+  .match-list {
+    border: solid #a9a9a9 1px;
+    width: 350px;
+    height: 500px;
+    margin-right: 30px;
+    margin-bottom: 20px;
+    overflow-y: scroll;
+    float: left;
+    text-align: center;
+  }
+  .match-player {
+    vertical-align: middle;
+    width: 35%;
+  }
+  .match-forms {
+    width: 30%;
+  }
+  .result {
+    margin-bottom: 2px;
+  }
+  .score-form {
+    width: 35px;
+  }
+  .result-win {
+    width: 30px;
+    height: 20px;
+    border-radius: 0;
+    border: none;
+    border-bottom: solid 3px #750000;
+    background-color: #c70000;
+    color: #ce9c9c;
+    font-weight: bold;
+    vertical-align: middle;
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.29);
+  }
+  .result-draw {
+    width: 30px;
+    height: 20px;
+    border-radius: 0;
+    border: none;
+    border-bottom: solid 3px #007400;
+    background-color: #12a012;
+    color: #bacea9;
+    font-weight: bold;
+    vertical-align: middle;
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.29);
+  }
+  button[class^="result-"]:active {
+    height: 18px;
+    border-bottom: none;
+    border-top: solid 2px #a8a8a8;
+    -webkit-transform: translateY(1px);
+    transform: translateY(1px);
+    box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.2);
+  }
+  .pushed-win {
+    height: 18px;
+    color: #ffffff;
+    background-color: #ff0000;
+    -webkit-transform: translateY(1px);
+    transform: translateY(1px);
+    box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.2);
+    border-bottom: none;
+  }
+  .pushed-draw {
+    height: 18px;
+    color: #ffffff;
+    background-color: #01ff01;
+    -webkit-transform: translateY(1px);
+    transform: translateY(1px);
+    box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.2);
+    border-bottom: none;
+  }

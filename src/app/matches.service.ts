@@ -25,7 +25,7 @@ export class MatchesService {
       );
   }
 
-  registMatcheInformation(inputMatchInfo: MatchInformation): Observable<MatchInformation> {
+  registerMatcheInformation(inputMatchInfo: MatchInformation): Observable<MatchInformation> {
     return this.http.post<MatchInformation>(this.matchesUrl, inputMatchInfo, this.httpOptions)
       .pipe(
         catchError(this.handleError<MatchInformation>('registMatchInformations'))

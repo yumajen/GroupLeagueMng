@@ -32,37 +32,23 @@ export class LeagueComponent implements OnInit {
     winnerRanks: [1],
   });
 
-  scoreForm = this.fb.group({
-    score1: [''],
-    score2: [''],
-  });
-
   players: Player[];
   groups: Group[];
   linkages: Linkage[];
   matchInformations: MatchInformation[];
-  containedPlayers: Player[]; // 各グループに含まれているプレイヤーの配列
-  shuffledPlayers: Player[]; // シャッフルされたプレイヤーの配列
-  centerPlayer: Player; // Kirkmanの組分け法の円の中心に配置されるプレイヤー
-  numberOfMatches: number; // 各グループ1回戦当たりの対戦数
-  breakPlayerInfos: any[] = []; // 対戦一回休みのプレイヤー(グループ内人数が奇数人の場合)
-  matchInfoIndex = 1; // 対戦情報登録用IDとして使うインデックス(要再考)
   matcheResults: any[] = []; // 対戦組合わせ毎の結果(データ更新用パラメータ)
-  pushedButtons: any[] = []; // 各組合せ毎に押下された勝敗ボタン情報を格納する
-  playersInfoForUpdate: any[] = []; // プレイヤー情報更新用の配列(勝ち点計算用)
-  point: any; // 勝ち点のオブジェクト
 
   constructor(
     private playersService: PlayersService,
     private groupsService: GroupsService,
     private matchesService: MatchesService,
     private fb: FormBuilder,
-    public changeDetectorRef: ChangeDetectorRef,
   ) { }
 
   ngOnInit() {
     this.getPlayers();
     this.getGroups();
+    this.getMatchInformations();
   }
 
   getPlayers(): void {
@@ -86,8 +72,6 @@ export class LeagueComponent implements OnInit {
     this.groupsService.getLinkages().subscribe(
       (linkages) => {
         this.linkages = linkages;
-        this.executeLottery();
-        this.getMatchInformations();
       }
     );
   }
@@ -96,7 +80,9 @@ export class LeagueComponent implements OnInit {
     this.matchesService.getMatcheInformations().subscribe(
       (matchInformations) => {
         this.matchInformations = matchInformations;
-        this.calculateGrades();
+        if (this.matchInformations.length > 0) {
+          this.calculateGrades();
+        }
       }
     );
   }
@@ -158,147 +144,17 @@ export class LeagueComponent implements OnInit {
     return eachMatchInfos;
   }
 
-  executeLottery() {
-    this.groups.forEach((group) => {
-      let rounds = this.getRoundNumber(group.id);
-      rounds.forEach((round) => {
-        let matches = this.drawLotsCombination(group.id, round);
-        this.registMatcheInformation(group.id, round, matches);
-      });
-    });
-  }
-
-  getRoundNumber(groupId: number): number[] {
-    // 各グループの人数に応じた回戦数を計算し、回戦数分の空要素を持った配列を返す
-    let count = this.linkages.filter((linkage) => {
-      return linkage.groupId == groupId;
-    }).length;
-
-    let allRounds = count % 2 == 0 ? count - 1 : count;
-    let rounds = [];
-    for (let i = 1; i <= allRounds; i++) {
-      rounds.push(i);
-    }
-
-    return rounds;
-  }
-
-  drawLotsCombination(groupId: number, roundNumber: number): any[] {
-    let matches = [];
-    let dummyPlayer: Player = {
-      id: 999,
-      name: 'dummy',
-      otherItems: {},
-      gains: null,
-      losts: null,
-      points: null,
-      rank: null,
-      isSuperior: false,
-    };
-
-    if (roundNumber == 1) {
-      this.containedPlayers = this.getPlayersOfEachGroups(groupId);
-      // グループ内人数が奇数の場合はダミープレイヤーを加えて偶数にする
-      if (this.containedPlayers.length % 2 != 0) {
-        this.containedPlayers.push(dummyPlayer);
-      }
-      this.numberOfMatches = this.containedPlayers.length / 2;
-      // グループ内に含まれるプレイヤー情報をシャッフルして配列に格納する
-      this.shuffledPlayers = this.executeShuffle(this.containedPlayers);
-      this.centerPlayer = this.shuffledPlayers.shift();
-    }
-
-    let player1: Player = null;
-    let player2: Player = null;
-
-    player1 = this.centerPlayer;
-    player2 = this.shuffledPlayers[0];
-    if (this.isSameObject(player1, dummyPlayer) || this.isSameObject(player2, dummyPlayer)) {
-      let breakPlayer = this.isSameObject(player1, dummyPlayer) ? player2 : player1;
-      this.setBreakPlayer(groupId, roundNumber, breakPlayer);
-    } else {
-      matches.push([player1, player2]);
-    }
-
-    for (let i = 1; i <= this.numberOfMatches - 1; i++) {
-      player1 = this.shuffledPlayers[i];
-      player2 = this.shuffledPlayers[this.containedPlayers.length - i - 1];
-      if (this.isSameObject(player1, dummyPlayer) || this.isSameObject(player2, dummyPlayer)) {
-        let breakPlayer = this.isSameObject(player1, dummyPlayer) ? player2 : player1;
-        this.setBreakPlayer(groupId, roundNumber, breakPlayer);
-      } else {
-        matches.push([player1, player2]);
-      }
-    }
-
-    // shuffledPlayers配列の末尾の要素を先頭に付け替えることで要素をローテーションする
-    let lastElement = this.shuffledPlayers.pop();
-    this.shuffledPlayers.unshift(lastElement);
-
-    return matches;
-  }
-
-  executeShuffle(containedPlayers: Player[]): Player[] {
-    let array = Array.from(containedPlayers);
-    for (let i = array.length - 1; i >= 0; i--) {
-      let rand = Math.floor(Math.random() * (i + 1));
-      [array[i], array[rand]] = [array[rand], array[i]];
-    }
-
-    return Array.from(array);
-  }
-
   isSameObject(obj1, obj2): boolean {
     return JSON.stringify(obj1) === JSON.stringify(obj2);
-  }
-
-  registMatcheInformation(groupId: number, roundNumber: number, matches: any[]): void {
-    matches.forEach((match) => {
-      let inputMatchInfo = {
-        id: this.matchInfoIndex,
-        groupId: groupId,
-        roundNumber: roundNumber,
-        match: match,
-        winnerId: null,
-        isDraw: false,
-        score1: null,
-        score2: null
-      };
-      this.matchesService.registMatcheInformation(inputMatchInfo as MatchInformation)
-        .subscribe(
-          (matcheInformation) => {
-            // 成功時の処理
-          }
-        );
-      this.matchInfoIndex++;
-    });
-  }
-
-  setBreakPlayer(groupId: number, roundNumber: number, breakPlayer: Player): void {
-    this.breakPlayerInfos.push({
-      groupId: groupId,
-      roundNumber: roundNumber,
-      breakPlayer: breakPlayer,
-    });
-  }
-
-  getBreakPlayerMessage(groupId: number, roundNumber: number): string {
-    let breakPlayer: Player
-
-    this.breakPlayerInfos.filter((breakPlayerInfo) => {
-      if (breakPlayerInfo.groupId == groupId && breakPlayerInfo.roundNumber == roundNumber) {
-        breakPlayer = breakPlayerInfo.breakPlayer;
-      }
-    });
-
-    let message = breakPlayer ? '対戦なし：' + breakPlayer.name : null;
-
-    return message;
   }
 
   getMatchResultSymbol(groupId: number, playerId1: number, playerId2: number): string {
     // リーグ表の斜め罫線に該当する部分なので勝敗のマークは表示しない
     if (playerId1 == playerId2) {
+      return;
+    }
+
+    if (this.matchInformations.length == 0) {
       return;
     }
 
@@ -319,111 +175,6 @@ export class LeagueComponent implements OnInit {
     return resultSymbol;
   }
 
-  inputResult(matchInfo: MatchInformation, score1: number, score2: number, buttonIndex: number, match: Player[] = null): void {
-    let winnerId: number;
-    let isScoreFilled: boolean = !!score1 && !!score2;
-
-    // 結果ボタンの押下なし、かつプレイヤー1, 2共に得点の入力がない場合は結果の登録を行わない
-    if (buttonIndex == undefined && !isScoreFilled) {
-      return;
-    }
-
-    // プレイヤー1, 2共に得点の入力がある場合にボタンを押下しても結果の登録を行わない
-    if (buttonIndex && isScoreFilled) {
-      return;
-    }
-
-    if (match) {
-      winnerId = match[buttonIndex] ? match[buttonIndex].id : null;
-    }
-
-    // 得点が入力されている場合の処理
-    if (isScoreFilled && match) {
-      // 得点に応じたボタンの押下状態及び勝敗計算になる
-      if (score1 > score2) {
-        buttonIndex = 0; // player1が勝利
-        winnerId = match[buttonIndex].id;
-      } else if (score1 < score2) {
-        buttonIndex = 1; // player2が勝利
-        winnerId = match[buttonIndex].id;
-      } else {
-        buttonIndex = 2; // 引き分け
-      }
-    }
-
-    this.changeButtonStatus(matchInfo.id, buttonIndex, isScoreFilled);
-    this.setResult(matchInfo, score1, score2, isScoreFilled, winnerId);
-  }
-
-  changeButtonStatus(matchInfoId: number, buttonIndex: number, isScoreFilled: boolean): void {
-    // 同じ対戦組合せ内ではボタンの押下状態は排他的にする
-    let isSameButton = false;
-    this.pushedButtons.some((button, i) => {
-      if (button.id == matchInfoId) {
-        this.pushedButtons.splice(i, 1);
-        isSameButton = button.index == buttonIndex;
-      }
-    });
-    // 既に押下状態のボタンを再度押下する場合はメソッドを抜ける(ただし得点の入力がある場合は抜けない)
-    if (isSameButton && !isScoreFilled) {
-      return;
-    }
-
-    this.pushedButtons.push(
-      {
-        id: matchInfoId,
-        index: buttonIndex
-      }
-    )
-    this.sortArray(this.pushedButtons, 'asc');
-  }
-
-  isPushed(buttonIndex: number, matchInfoId: number): boolean {
-    let target = this.pushedButtons.find((button) => {
-      if (button.id == matchInfoId) {
-        return button;
-      }
-    });
-
-    return target && target.index == buttonIndex;
-  }
-
-  setResult(matchInfo: MatchInformation, score1: number, score2: number, isScoreFilled: boolean, playerId?: number): void {
-    let winnerId: number;
-    let isDraw: boolean = false;
-
-    isDraw = !playerId;
-    if (!isDraw) {
-      winnerId = playerId;
-    }
-
-    // 既に同じmatchInforIdのデータが格納されている場合は削除しデータの重複を避ける
-    let isSameButton = false;
-    this.matcheResults.some((result, i) => {
-      if (result.id == matchInfo.id) {
-        this.matcheResults.splice(i, 1);
-        isSameButton = result.winnerId == playerId || isDraw;
-      }
-    });
-    // 既に押下状態のボタンを再度押下する場合はメソッドを抜ける(ただし得点の入力がある場合は抜けない)
-    if (isSameButton && !isScoreFilled) {
-      return;
-    }
-
-    let updateInfo = {
-      id: matchInfo.id,
-      groupId: matchInfo.groupId,
-      roundNumber: matchInfo.roundNumber,
-      match: matchInfo.match,
-      winnerId: winnerId,
-      isDraw: isDraw,
-      score1: score1 ? Number(score1) : null,
-      score2: score2 ? Number(score2) : null
-    }
-    this.matcheResults.push(updateInfo);
-    this.sortArray(this.matcheResults, 'asc');
-  }
-
   sortArray(array: any[], direction: string): void {
     array.sort(function (a, b) {
       let ida = a.id;
@@ -436,6 +187,10 @@ export class LeagueComponent implements OnInit {
       }
       return 0;
     });
+  }
+
+  updateMatchResults(matcheResults: any[]) {
+    this.matcheResults = matcheResults;
   }
 
   updateLeagues(): void {
