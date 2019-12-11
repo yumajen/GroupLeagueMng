@@ -5,6 +5,7 @@ import { GroupsService } from '../groups.service';
 import { Player } from '../player';
 import { Group } from '../group';
 import { Linkage } from '../linkage';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-shuffle',
@@ -25,7 +26,8 @@ export class ShuffleComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     public matDialogRef: MatDialogRef<ShuffleComponent>,
     private playersService: PlayersService,
-    private groupsService: GroupsService
+    private groupsService: GroupsService,
+    private router: Router,
   ) {
     this.groupLeagues = [];
     this.inputInformations = Array.from(this.data.inputInformations); // inputInformationsのDeep Copy
@@ -115,6 +117,9 @@ export class ShuffleComponent implements OnInit {
     this.registPlayers();
     this.registGroups();
     this.registLinkages();
+    // ダイアログを閉じてリーグ表ページへ遷移する
+    this.matDialogRef.close();
+    this.router.navigate(['league']);
   }
 
 
