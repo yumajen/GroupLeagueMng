@@ -1,0 +1,23 @@
+/* 共通 */
+table {
+  border-collapse: collapse;
+}
+
+/* リーグ表エリア */
+.league-table {
+  width: 100%;
+}
+.info {
+  font-size: 15px;
+  color: #a9a9a9;
+  text-align: right;
+            }
+.info:hover {
+  cursor: pointer;
+}
+.result-cell {
+  text-align: center;
+}
+.superior {
+  background-color: #ff8686;
+}

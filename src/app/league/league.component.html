@@ -39,37 +39,9 @@
 <div *ngIf="linkages">
     <div id="group-1" *ngFor="let group of groups">
         <h3 *ngIf="group">{{group.name}}</h3>
-        <app-match-lists [group]="group" [players]="players" [linkages]="linkages"
-            (matcheResultsUpdated)="updateMatchResults($event)">
+        <app-match-lists [group]="group" [players]="players" [linkages]="linkages">
         </app-match-lists>
-        <div class="league">
-            <table border=1 *ngIf="matchInformations">
-                <tr>
-                    <td></td>
-                    <td *ngFor="let player of getPlayersOfEachGroups(group.id)">
-                        {{player.name}}
-                    </td>
-                    <td>勝点</td>
-                    <td>得点</td>
-                    <td>失点</td>
-                    <td>得失点差</td>
-                    <td>順位</td>
-                </tr>
-                <tr *ngFor="let player1 of getPlayersOfEachGroups(group.id)"
-                    [class.superior]="isSuperiorOfFinalRound(group.id, player1.isSuperior)">
-                    <td>
-                        {{player1.name}}<mat-icon class="info">info</mat-icon>
-                    </td>
-                    <td class="result-cell" *ngFor="let player2 of getPlayersOfEachGroups(group.id)">
-                        {{getMatchResultSymbol(group.id, player1.id, player2.id)}}
-                    </td>
-                    <td>{{player1.points}}</td>
-                    <td>{{player1.gains}}</td>
-                    <td>{{player1.losts}}</td>
-                    <td>{{player1.gains - player1.losts}}</td>
-                    <td>{{player1.rank}}</td>
-                </tr>
-            </table>
-        </div>
+        <app-league-table [group]="group" [players]="players" [linkages]="linkages"
+            [matchInformations]="matchInformations" [calSettings]="calSettingForm.value"></app-league-table>
     </div>
 </div>

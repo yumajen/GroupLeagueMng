@@ -7,12 +7,7 @@ import { PlayersService } from '../players.service';
 import { GroupsService } from '../groups.service';
 import { MatchesService } from '../matches.service';
 import { MatchInformation } from '../matchInformation';
-
-const RESULT_SYMBOL = {
-  WIN: '◯',
-  LOSE: '×',
-  DRAW: '△',
-};
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-league',
@@ -48,7 +43,6 @@ export class LeagueComponent implements OnInit {
   ngOnInit() {
     this.getPlayers();
     this.getGroups();
-    this.getMatchInformations();
   }
 
   getPlayers(): void {
@@ -72,6 +66,7 @@ export class LeagueComponent implements OnInit {
     this.groupsService.getLinkages().subscribe(
       (linkages) => {
         this.linkages = linkages;
+        this.getMatchInformations();
       }
     );
   }
@@ -84,12 +79,6 @@ export class LeagueComponent implements OnInit {
           this.calculateGrades();
         }
       }
-    );
-  }
-
-  updateMatchInformation(matchResult: any): void {
-    this.matchesService.updateMatchInformation(matchResult as MatchInformation).subscribe(
-      () => { }
     );
   }
 
@@ -148,33 +137,6 @@ export class LeagueComponent implements OnInit {
     return JSON.stringify(obj1) === JSON.stringify(obj2);
   }
 
-  getMatchResultSymbol(groupId: number, playerId1: number, playerId2: number): string {
-    // リーグ表の斜め罫線に該当する部分なので勝敗のマークは表示しない
-    if (playerId1 == playerId2) {
-      return;
-    }
-
-    if (this.matchInformations.length == 0) {
-      return;
-    }
-
-    let eachMatchInfos = this.getMatchInformationsOfEachGroups(groupId);
-    let result = eachMatchInfos.find((info) => {
-      let match = [info.match[0].id, info.match[1].id];
-      if (match.indexOf(playerId1) != -1 && match.indexOf(playerId2) != -1) {
-        return info;
-      }
-    });
-
-    // 勝者IDが設定されておらず引き分けでもない場合(未対戦の場合)は勝敗のマークは表示しない
-    if (!result.winnerId && !result.isDraw) {
-      return;
-    }
-
-    let resultSymbol = result.isDraw ? RESULT_SYMBOL.DRAW : (playerId1 == result.winnerId ? RESULT_SYMBOL.WIN : RESULT_SYMBOL.LOSE)
-    return resultSymbol;
-  }
-
   sortArray(array: any[], direction: string): void {
     array.sort(function (a, b) {
       let ida = a.id;
@@ -189,17 +151,13 @@ export class LeagueComponent implements OnInit {
     });
   }
 
-  updateMatchResults(matcheResults: any[]) {
-    this.matcheResults = matcheResults;
-  }
-
   updateLeagues(): void {
-    this.matcheResults.forEach((result) => {
-      this.updateMatchInformation(result);
-    });
+    forkJoin(this.matchesService.executeUpdateMatches())
+      .subscribe(
+        () => { }
+      )
 
     this.getMatchInformations();
-    this.matcheResults = [];
   }
 
   calculateGrades(): void {

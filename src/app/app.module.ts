@@ -12,6 +12,7 @@ import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
 import { InMemoryDataService } from './in-memory-data.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatchListsComponent } from './match-lists/match-lists.component';
+import { LeagueTableComponent } from './league-table/league-table.component';
 
 @NgModule({
   declarations: [
@@ -19,7 +20,8 @@ import { MatchListsComponent } from './match-lists/match-lists.component';
     RegistPlayersComponent,
     ShuffleComponent,
     LeagueComponent,
-    MatchListsComponent
+    MatchListsComponent,
+    LeagueTableComponent
   ],
   imports: [
     BrowserModule,
