@@ -4,6 +4,7 @@ import { MatchInformation } from '../matchInformation';
 import { Linkage } from '../linkage';
 import { Player } from '../player';
 import { MatchesService } from '../matches.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-match-lists',
@@ -15,7 +16,6 @@ export class MatchListsComponent implements OnInit {
   @Input() group: Group;
   @Input() players: Player[];
   @Input() linkages: Linkage[];
-  @Output() matcheResultsUpdated: EventEmitter<any> = new EventEmitter();
 
   eachPlayers: Player[] = [];
   matchInformations: MatchInformation[] = [];
@@ -25,6 +25,7 @@ export class MatchListsComponent implements OnInit {
   breakPlayerInfos: any[] = []; // 対戦一回休みのプレイヤー(グループ内人数が奇数人の場合)
   matchInfoIndex = 1; // 対戦情報登録用IDとして使うインデックス(要再考)
   pushedButtons: any[] = []; // 各組合せ毎に押下された勝敗ボタン情報を格納する
+  inputMatchInfors: any[] = []; // 対戦組合わせ毎のデータ登録用パラメータ
   matcheResults: any[] = []; // 対戦組合わせ毎の結果(データ更新用パラメータ)
 
   constructor(
@@ -35,6 +36,7 @@ export class MatchListsComponent implements OnInit {
     this.getPlayersOfEachGroups(this.group.id);
     if (this.matchInformations.length == 0) {
       this.executeLottery();
+      this.registerMatcheInformation();
     }
     this.getMatchInformations();
   }
@@ -108,8 +110,9 @@ export class MatchListsComponent implements OnInit {
     let rounds = this.getRoundNumber();
     rounds.forEach((round) => {
       let matches = this.drawLotsCombination(round);
-      this.registerMatcheInformation(this.group.id, round, matches);
+      this.setInputMatchInfors(this.group.id, round, matches);
     });
+    this.matchesService.setRegisterParams(this.inputMatchInfors);
   }
 
   // 対戦組合わせ決めシャッフルの主処理
@@ -177,10 +180,10 @@ export class MatchListsComponent implements OnInit {
     return Array.from(array);
   }
 
-  registerMatcheInformation(groupId: number, roundNumber: number, matches: any[]): void {
+  setInputMatchInfors(groupId: number, roundNumber: number, matches: any[]): void {
     matches.forEach((match) => {
       let inputMatchInfo = {
-        id: this.matchInfoIndex,
+        id: 0,
         groupId: groupId,
         roundNumber: roundNumber,
         match: match,
@@ -189,14 +192,15 @@ export class MatchListsComponent implements OnInit {
         score1: null,
         score2: null
       };
-      this.matchesService.registerMatcheInformation(inputMatchInfo as MatchInformation)
-        .subscribe(
-          (matcheInformation) => {
-            // 成功時の処理
-          }
-        );
-      this.matchInfoIndex++;
+      this.inputMatchInfors.push(inputMatchInfo);
     });
+  }
+
+  registerMatcheInformation(): void {
+    forkJoin(this.matchesService.executeRegisterMatches())
+      .subscribe(
+        () => { }
+      )
   }
 
   getBreakPlayerMessage(groupId: number, roundNumber: number): string {
@@ -269,7 +273,6 @@ export class MatchListsComponent implements OnInit {
 
     this.changeButtonStatus(matchInfo.id, buttonIndex, isScoreFilled);
     this.setResult(matchInfo, score1, score2, isScoreFilled, winnerId);
-    this.matcheResultsUpdated.emit(this.matcheResults);
   }
 
   changeButtonStatus(matchInfoId: number, buttonIndex: number, isScoreFilled: boolean): void {
@@ -329,6 +332,7 @@ export class MatchListsComponent implements OnInit {
     }
     this.matcheResults.push(updateInfo);
     this.sortArray(this.matcheResults, 'asc');
+    this.matchesService.setUpdateParams(this.matcheResults);
   }
 
   sortArray(array: any[], direction: string): void {

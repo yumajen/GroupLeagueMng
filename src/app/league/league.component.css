@@ -32,25 +32,6 @@ table {
   margin: 0 10px;
 }
 
-/* リーグ表エリア */
-.league {
-  width: 100%;
-}
-.info {
-  font-size: 15px;
-  color: #a9a9a9;
-  text-align: right;
-}
-.info:hover {
-  cursor: pointer;
-}
-.result-cell {
-  text-align: center;
-}
-.superior {
-  background-color: #ff8686;
-}
-
 /* 説明 */
 .discription {
   font-size: 13px;
