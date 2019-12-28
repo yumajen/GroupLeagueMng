@@ -394,19 +394,4 @@ export class LeagueComponent implements OnInit {
     });
   }
 
-  isSuperiorOfFinalRound(groupId: number, isSuperior: boolean): boolean {
-    // 各グループで既に終了した対戦数
-    let numberOfMatches = this.matchInformations.filter((info) => {
-      if (info.groupId == groupId && (info.winnerId || info.isDraw)) {
-        return info;
-      };
-    }).length;
-
-    // 各グループの人数
-    let numberOfPlayers = this.getPlayersOfEachGroups(groupId).length;
-    // 各グループの最大対戦数
-    let maxMatches = (numberOfPlayers - 1) * numberOfPlayers / 2;
-
-    return isSuperior && numberOfMatches == maxMatches;
-  }
 }

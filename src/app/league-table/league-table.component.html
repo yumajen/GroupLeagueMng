@@ -5,11 +5,6 @@
             <td *ngFor="let player of getPlayersOfEachGroups()">
                 {{player.name}}
             </td>
-            <td>勝点</td>
-            <td>得点</td>
-            <td>失点</td>
-            <td>得失点差</td>
-            <td>順位</td>
         </tr>
         <tr *ngFor="let player1 of getPlayersOfEachGroups()"
             [class.superior]="isSuperiorOfFinalRound(player1.isSuperior)">
@@ -19,11 +14,6 @@
             <td class="result-cell" *ngFor="let player2 of getPlayersOfEachGroups()">
                 {{getMatchResultSymbol(player1.id, player2.id)}}
             </td>
-            <td>{{player1.points}}</td>
-            <td>{{player1.gains}}</td>
-            <td>{{player1.losts}}</td>
-            <td>{{player1.gains - player1.losts}}</td>
-            <td>{{player1.rank}}</td>
         </tr>
     </table>
 </div>

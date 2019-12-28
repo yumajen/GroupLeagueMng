@@ -13,6 +13,7 @@ import { InMemoryDataService } from './in-memory-data.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatchListsComponent } from './match-lists/match-lists.component';
 import { LeagueTableComponent } from './league-table/league-table.component';
+import { GradesTableComponent } from './grades-table/grades-table.component';
 
 @NgModule({
   declarations: [
@@ -21,7 +22,8 @@ import { LeagueTableComponent } from './league-table/league-table.component';
     ShuffleComponent,
     LeagueComponent,
     MatchListsComponent,
-    LeagueTableComponent
+    LeagueTableComponent,
+    GradesTableComponent
   ],
   imports: [
     BrowserModule,

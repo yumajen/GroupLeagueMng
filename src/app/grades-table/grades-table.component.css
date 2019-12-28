@@ -1,0 +1,15 @@
+/* 共通 */
+table {
+    border-collapse: collapse;
+}
+
+/* 成績表エリア */
+.grades-table {
+  width: 100%;
+}
+.result-cell {
+  text-align: center;
+}
+.superior {
+  background-color: #ff8686;
+}
