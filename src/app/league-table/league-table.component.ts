@@ -1,5 +1,4 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { MatchesService } from '../matches.service';
 import { MatchInformation } from '../matchInformation';
 import { Group } from '../group';
 import { Player } from '../player';
@@ -27,7 +26,6 @@ export class LeagueTableComponent implements OnInit {
 
   constructor(
     private playersService: PlayersService,
-    private matchesService: MatchesService,
   ) { }
 
   ngOnInit() {
