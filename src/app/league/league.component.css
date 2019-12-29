@@ -10,6 +10,12 @@ button:hover {
 div[id^="group-"] {
   overflow: hidden;
 }
+.group-parts {
+  display: flex;
+}
+.group-contents {
+  margin-right: 30px;
+}
 table {
   border-collapse: collapse;
 }

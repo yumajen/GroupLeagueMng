@@ -7,11 +7,46 @@ table {
 .league-table {
   width: 100%;
 }
+mat-table {
+  background-color: #ffffff;
+}
+tr {
+  height: 30px;
+}
+th.mat-header-cell {
+  color: #000000;
+  width: 60px;
+  border-top: solid 1px #a9a9a9;
+  border-right: solid 1px #a9a9a9;
+  border-bottom: solid 1px #a9a9a9;
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+}
+th.mat-header-cell:first-child {
+  border-right: none;
+  border-left: solid 1px #a9a9a9;
+}
+td {
+  color: #000000;
+  width: 60px;
+  border-right: solid 1px #a9a9a9;
+  border-bottom: solid 1px #a9a9a9;
+}
+td.mat-cell {
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+}
+td:first-child {
+  border-right: none;
+  border-left: solid 1px #a9a9a9;
+}
 .info {
   font-size: 15px;
   color: #a9a9a9;
-  text-align: right;
-            }
+  text-align: center;
+}
 .info:hover {
   cursor: pointer;
 }

@@ -24,11 +24,16 @@ export class LeagueTableComponent implements OnInit {
   @Input() matchInformations: MatchInformation[] = [];
   @Input() calSettings: any;
 
+  dataSource: Player[] = [];
+  displayedColumns: String[] = ['information', 'verticalName'];
+
   constructor(
     private playersService: PlayersService,
   ) { }
 
   ngOnInit() {
+    let numberOfPlayers = this.getPlayersOfEachGroups().length;
+    this.setDisplayedColumns(numberOfPlayers);
   }
 
   getPlayersOfEachGroups(): Player[] {
@@ -66,6 +71,12 @@ export class LeagueTableComponent implements OnInit {
       }
       return 0;
     });
+  }
+
+  setDisplayedColumns(length: number): void {
+    // プレイヤーn人分の要素(0...n-1)を持つ配列をdisplayedColumnsに結合する
+    const additionalArray = Array.from({ length: length }, (v, i) => String(i));
+    this.displayedColumns.push(...additionalArray);
   }
 
   getMatchInformationsOfEachGroups(): MatchInformation[] {

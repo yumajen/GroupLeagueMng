@@ -16,6 +16,9 @@ export class GradesTableComponent implements OnInit {
   @Input() linkages: Linkage[];
   @Input() matchInformations: MatchInformation[] = [];
 
+  dataSource: Player[] = [];
+  displayedColumns: String[] = ['rank', 'name', 'points', 'gains', 'losts', 'difference'];
+
   constructor() { }
 
   ngOnInit() {

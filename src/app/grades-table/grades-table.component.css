@@ -7,6 +7,39 @@ table {
 .grades-table {
   width: 100%;
 }
+mat-table {
+  background-color: #ffffff;
+}
+tr {
+  height: 30px;
+}
+th.mat-header-cell {
+  background-color: #cecdcd;
+  color: #000000;
+  width: 60px;
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+  border-top: solid 1px #a9a9a9;
+  border-right: solid 1px #a9a9a9;
+  border-bottom: solid 1px #a9a9a9;
+  text-align: center;
+  vertical-align: middle;
+}
+th.mat-header-cell:first-child {
+  border-left: solid 1px #a9a9a9;
+}
+td {
+  color: #000000;
+  width: 60px;
+  text-align: center;
+  vertical-align: middle;
+  border-right: solid 1px #a9a9a9;
+  border-bottom: solid 1px #a9a9a9;
+}
+td:first-child {
+  border-left: solid 1px #a9a9a9;
+}
 .result-cell {
   text-align: center;
 }

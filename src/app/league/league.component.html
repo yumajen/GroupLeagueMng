@@ -39,11 +39,15 @@
 <div *ngIf="linkages">
     <div id="group-1" *ngFor="let group of groups">
         <h3 *ngIf="group">{{group.name}}</h3>
-        <app-match-lists [group]="group" [players]="players" [linkages]="linkages">
-        </app-match-lists>
-        <app-league-table [group]="group" [players]="players" [linkages]="linkages"
-            [matchInformations]="matchInformations" [calSettings]="calSettingForm.value"></app-league-table>
-        <app-grades-table [group]="group" [players]="players" [linkages]="linkages"
-            [matchInformations]="matchInformations"></app-grades-table>
+        <div class="group-parts">
+            <app-match-lists [group]="group" [players]="players" [linkages]="linkages" class="group-contents">
+            </app-match-lists>
+            <app-league-table [group]="group" [players]="players" [linkages]="linkages"
+                [matchInformations]="matchInformations" [calSettings]="calSettingForm.value" class="group-contents">
+            </app-league-table>
+            <app-grades-table [group]="group" [players]="players" [linkages]="linkages"
+                [matchInformations]="matchInformations" class="group-contents">
+            </app-grades-table>
+        </div>
     </div>
 </div>

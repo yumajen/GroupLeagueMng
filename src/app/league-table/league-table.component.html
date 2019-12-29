@@ -1,19 +1,24 @@
 <div class="league-table">
-    <table border=1 *ngIf="matchInformations">
-        <tr>
-            <td></td>
-            <td *ngFor="let player of getPlayersOfEachGroups()">
-                {{player.name}}
+    <mat-table [dataSource]="getPlayersOfEachGroups()" *ngIf="matchInformations">
+        <ng-container matColumnDef="information">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let player1">
+                <mat-icon class="info">info</mat-icon>
             </td>
-        </tr>
-        <tr *ngFor="let player1 of getPlayersOfEachGroups()"
-            [class.superior]="isSuperiorOfFinalRound(player1.isSuperior)">
-            <td>
-                {{player1.name}}<mat-icon class="info">info</mat-icon>
-            </td>
-            <td class="result-cell" *ngFor="let player2 of getPlayersOfEachGroups()">
+        </ng-container>
+        <ng-container matColumnDef="verticalName">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let player1">{{player1.name}}</td>
+        </ng-container>
+        <!-- matColumnDefとdisplayedColumnsの要素の紐付けを番号iで行う -->
+        <ng-container matColumnDef="{{i}}" *ngFor="let player2 of getPlayersOfEachGroups(); let i = index">
+            <th mat-header-cell *matHeaderCellDef>{{player2.name}}</th>
+            <td mat-cell *matCellDef="let player1">
                 {{getMatchResultSymbol(player1.id, player2.id)}}
             </td>
-        </tr>
-    </table>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let player1; columns: displayedColumns;"
+            [class.superior]="isSuperiorOfFinalRound(player1.isSuperior)"></tr>
+    </mat-table>
 </div>
