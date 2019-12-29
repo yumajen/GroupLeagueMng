@@ -83,9 +83,10 @@ export class LeagueComponent implements OnInit {
   }
 
   updatePlayer(updatePlayerInfo: any) {
-    this.playersService.updatePlayer(updatePlayerInfo as Player).subscribe(
-      () => { }
-    );
+    forkJoin(this.playersService.executeUpdatePlayers(updatePlayerInfo))
+      .subscribe(
+        () => { }
+      );
   }
 
   getPlayersOfEachGroups(groupId: number): Player[] {
@@ -152,12 +153,13 @@ export class LeagueComponent implements OnInit {
   }
 
   updateLeagues(): void {
-    forkJoin(this.matchesService.executeUpdateMatches())
-      .subscribe(
-        () => { }
-      )
-
-    this.getMatchInformations();
+    if (this.matchesService.isUpdatePraramsSet) {
+      forkJoin(this.matchesService.executeUpdateMatches())
+        .subscribe(
+          () => { }
+        )
+      this.getMatchInformations();
+    }
   }
 
   calculateGrades(): void {
@@ -185,19 +187,20 @@ export class LeagueComponent implements OnInit {
       playerInfo['losts'] = score.losts;
       playerInfo['points'] = points;
 
-      updatePlayerInfo.push(playerInfo)
+      updatePlayerInfo.push(playerInfo);
     });
 
     // 順位を計算し、プレイヤー情報更新用パラメータを更新する
-    this.calculateRank(updatePlayerInfo)
+    this.calculateRank(updatePlayerInfo);
+
+    // 各プレイヤーの順位変動を判定する
+    this.setRankUpDown(updatePlayerInfo);
 
     // 各プレイヤーについて、現在の順位で優勝または次ステージへ進出可能かどうかを判定する
     this.decideSuperior(updatePlayerInfo);
 
     // 上記で設定したパラメータでプレイヤー情報を更新
-    updatePlayerInfo.forEach((playerInfo) => {
-      this.updatePlayer(playerInfo);
-    });
+    this.updatePlayer(updatePlayerInfo);
 
     this.getPlayers();
   }
@@ -384,6 +387,23 @@ export class LeagueComponent implements OnInit {
     // 順位計算の前にグループ内全プレイヤーの順位をリセットする
     playerInfos.forEach((playerInfo) => {
       playerInfo.rank = 1;
+    });
+  }
+
+  setRankUpDown(updatePlayerInfo: any[]): void {
+    updatePlayerInfo.forEach((afterPlayer) => {
+      const beforePlayer = this.players.find((player) => {
+        return player.id == afterPlayer.id;
+      });
+      const rankDifference = beforePlayer.rank - afterPlayer.rank;
+
+      if (rankDifference > 0) {
+        afterPlayer.upDown = 1;
+      } else if (rankDifference < 0) {
+        afterPlayer.upDown = -1;
+      } else {
+        afterPlayer.upDown = 0;
+      }
     });
   }
 

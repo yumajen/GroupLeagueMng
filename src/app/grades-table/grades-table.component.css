@@ -46,3 +46,12 @@ td:first-child {
 .superior {
   background-color: #ff8686;
 }
+mat-icon#upDown_-1 {
+  color: #1100ff;
+}
+mat-icon#upDown_0 {
+  color: #000000;
+}
+mat-icon#upDown_1 {
+  color: #ff0000;
+}

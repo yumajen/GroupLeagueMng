@@ -17,7 +17,7 @@ export class GradesTableComponent implements OnInit {
   @Input() matchInformations: MatchInformation[] = [];
 
   dataSource: Player[] = [];
-  displayedColumns: String[] = ['rank', 'name', 'points', 'gains', 'losts', 'difference'];
+  displayedColumns: String[] = ['upDown', 'rank', 'name', 'points', 'gains', 'losts', 'difference'];
 
   constructor() { }
 
@@ -77,4 +77,14 @@ export class GradesTableComponent implements OnInit {
     return isSuperior && numberOfMatches == maxMatches;
   }
 
+  getRankUpDownSymbol(upDown: number): string {
+    switch (upDown) {
+      case 1:
+        return 'arrow_upward';
+      case 0:
+        return 'arrow_forward';
+      case -1:
+        return 'arrow_downward';
+    }
+  }
 }
