@@ -14,6 +14,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatchListsComponent } from './match-lists/match-lists.component';
 import { LeagueTableComponent } from './league-table/league-table.component';
 import { GradesTableComponent } from './grades-table/grades-table.component';
+import { MatTableModule } from '@angular/material/table';
 
 @NgModule({
   declarations: [
@@ -33,6 +34,7 @@ import { GradesTableComponent } from './grades-table/grades-table.component';
     MatDialogModule,
     FormsModule,
     ReactiveFormsModule,
+    MatTableModule,
     HttpClientModule,
     HttpClientInMemoryWebApiModule.forRoot(InMemoryDataService)
   ],
