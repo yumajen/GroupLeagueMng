@@ -32,6 +32,7 @@ export class LeagueComponent implements OnInit {
   linkages: Linkage[];
   matchInformations: MatchInformation[];
   matcheResults: any[] = []; // 対戦組合わせ毎の結果(データ更新用パラメータ)
+  isLeaguesUpdated = false;  // 更新ボタンが押されたかどうかを判定し、成績計算実行の有無を分ける
 
   constructor(
     private playersService: PlayersService,
@@ -75,9 +76,10 @@ export class LeagueComponent implements OnInit {
     this.matchesService.getMatcheInformations().subscribe(
       (matchInformations) => {
         this.matchInformations = matchInformations;
-        if (this.matchInformations.length > 0) {
+        if (this.isLeaguesUpdated) {
           this.calculateGrades();
         }
+        this.isLeaguesUpdated = false;
       }
     );
   }
@@ -153,6 +155,7 @@ export class LeagueComponent implements OnInit {
   }
 
   updateLeagues(): void {
+    this.isLeaguesUpdated = true;
     if (this.matchesService.isUpdatePraramsSet) {
       forkJoin(this.matchesService.executeUpdateMatches())
         .subscribe(
