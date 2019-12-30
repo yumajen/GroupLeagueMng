@@ -13,12 +13,21 @@ h1 {
 }
 
 /* ページ切り替えタブ */
+.tab-container {
+    width: 300px;
+    height: 35px;
+    line-height: 35px;
+    margin-left: 15px;
+}
 a {
-    margin-right: 1px;
-    margin-left: 20px;
-    padding: 4px;
+    display: inline-block;
+    box-sizing: border-box;
+    width: 100px;
+    height: 35px;
     background-color:#c0c0c0;
     text-decoration: none;
+    text-align: center;
+    border-radius: 4px 4px 0 0;
 }
 a:visited, a:link {
     color: #000000;
@@ -26,9 +35,13 @@ a:visited, a:link {
 a.active {
     background-color:#4169e1;
     color:#ffffff;
+    border-bottom: none;
 }
 
 /* ページ */
 .outlet {
-    margin-left: 20px;
+    margin: 0 15px;
+    padding-left: 15px;
+    padding-bottom: 15px;
+    border: solid 2px #4169e1;
 }
