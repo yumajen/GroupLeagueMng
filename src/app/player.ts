@@ -6,5 +6,6 @@ export class Player {
     losts: number;
     points: number;
     rank: number;
+    upDown: number;
     isSuperior: boolean;
 }

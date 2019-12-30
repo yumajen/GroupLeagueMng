@@ -2,10 +2,10 @@ import { Component, OnInit, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material';
 import { PlayersService } from '../players.service';
 import { GroupsService } from '../groups.service';
-import { Player } from '../player';
 import { Group } from '../group';
 import { Linkage } from '../linkage';
 import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-shuffle',
@@ -140,14 +140,12 @@ export class ShuffleComponent implements OnInit {
   }
 
   registPlayers(): void {
-    this.data.inputInformations.forEach((inputPlayer) => {
-      this.playersService.registPlayer(inputPlayer as Player)
-        .subscribe(
-          (player) => {
-            // 成功時の処理
-          }
-        );
-    });
+    forkJoin(this.playersService.executeRegisterPlayers(this.data.inputInformations))
+      .subscribe(
+        (player) => {
+          // 成功時の処理
+        }
+      );
   }
 
   registGroups(): void {

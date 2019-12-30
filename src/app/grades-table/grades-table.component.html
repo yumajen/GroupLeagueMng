@@ -1,5 +1,11 @@
 <div class="grades-table">
     <mat-table [dataSource]="getPlayersOfEachGroups()" *ngIf="matchInformations">
+        <ng-container matColumnDef="upDown">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let player">
+                <mat-icon id="upDown_{{player.upDown}}">{{getRankUpDownSymbol(player.upDown)}}</mat-icon>
+            </td>
+        </ng-container>
         <ng-container matColumnDef="rank">
             <th mat-header-cell *matHeaderCellDef>順位</th>
             <td mat-cell *matCellDef="let player">

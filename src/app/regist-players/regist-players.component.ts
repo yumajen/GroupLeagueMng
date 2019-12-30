@@ -1,9 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { Player } from '../player';
 import { PlayersService } from '../players.service';
 import { MatDialog } from '@angular/material';
 import { ShuffleComponent } from '../shuffle/shuffle.component';
-
 
 @Component({
   selector: 'app-regist-players',
@@ -29,6 +27,7 @@ export class RegistPlayersComponent implements OnInit {
         losts: null,
         points: null,
         rank: 1,
+        upDown: 0,
         isSuperior: false,
       }
     );
@@ -62,6 +61,7 @@ export class RegistPlayersComponent implements OnInit {
         losts: null,
         points: null,
         rank: 1,
+        upDown: 0,
         isSuperior: false,
       }
     );
@@ -92,18 +92,6 @@ export class RegistPlayersComponent implements OnInit {
         console.log(players);
       }
     );
-  }
-
-  registPlayers(): void {
-    this.inputInformations.forEach((inputPlayer) => {
-      this.playersService.registPlayer(inputPlayer as Player)
-        .subscribe(
-          (player) => {
-            // 成功時の処理
-            console.log(player);
-          }
-        );
-    });
   }
 
   switchDeleteTaeget(inputInformation: any): void {

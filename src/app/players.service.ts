@@ -26,7 +26,7 @@ export class PlayersService {
       );
   }
 
-  registPlayer(inputPlayer: Player): Observable<Player> {
+  registerPlayer(inputPlayer: Player): Observable<Player> {
     return this.http.post<Player>(this.playersUrl, inputPlayer, this.httpOptions)
       .pipe(
         catchError(this.handleError<Player>('registPlayer'))
@@ -46,4 +46,21 @@ export class PlayersService {
       return of(result as T);
     };
   }
+
+  executeRegisterPlayers(registerParams: any): Observable<Player>[] {
+    let observables = registerParams.map((param) => {
+      return this.registerPlayer(param as Player);
+    });
+
+    return observables;
+  }
+
+  executeUpdatePlayers(updateParams: any): Observable<Player>[] {
+    let observables = updateParams.map((param) => {
+      return this.updatePlayer(param as Player);
+    });
+
+    return observables;
+  }
+
 }

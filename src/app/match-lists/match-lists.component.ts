@@ -126,6 +126,7 @@ export class MatchListsComponent implements OnInit {
       losts: null,
       points: null,
       rank: null,
+      upDown: 0,
       isSuperior: false,
     };
 
