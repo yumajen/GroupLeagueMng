@@ -23,7 +23,6 @@ export class MatchListsComponent implements OnInit {
   shuffledPlayers: Player[] = []; // シャッフルされたプレイヤーの配列
   centerPlayer: Player; // Kirkmanの組分け法の円の中心に配置されるプレイヤー
   breakPlayerInfos: any[] = []; // 対戦一回休みのプレイヤー(グループ内人数が奇数人の場合)
-  matchInfoIndex = 1; // 対戦情報登録用IDとして使うインデックス(要再考)
   pushedButtons: any[] = []; // 各組合せ毎に押下された勝敗ボタン情報を格納する
   inputMatchInfors: any[] = []; // 対戦組合わせ毎のデータ登録用パラメータ
   matcheResults: any[] = []; // 対戦組合わせ毎の結果(データ更新用パラメータ)
@@ -34,10 +33,6 @@ export class MatchListsComponent implements OnInit {
 
   ngOnInit() {
     this.getPlayersOfEachGroups(this.group.id);
-    if (this.matchInformations.length == 0) {
-      this.executeLottery();
-      this.registerMatcheInformation();
-    }
     this.getMatchInformations();
   }
 
@@ -65,6 +60,10 @@ export class MatchListsComponent implements OnInit {
     this.matchesService.getMatcheInformations().subscribe(
       (matchInformations) => {
         this.matchInformations = matchInformations;
+        if (this.matchInformations.length == 0) {
+          this.executeLottery();
+          this.registerMatcheInformation();
+        }
       }
     );
   }
@@ -200,7 +199,9 @@ export class MatchListsComponent implements OnInit {
   registerMatcheInformation(): void {
     forkJoin(this.matchesService.executeRegisterMatches())
       .subscribe(
-        () => { }
+        () => {
+          this.getMatchInformations();
+        }
       )
   }
 
@@ -231,6 +232,7 @@ export class MatchListsComponent implements OnInit {
   }
 
   isPushed(buttonIndex: number, matchInfoId: number): boolean {
+    // TODO: タブ切り替えた時のボタン押下状態を復活させる処理が必要
     let target = this.pushedButtons.find((button) => {
       if (button.id == matchInfoId) {
         return button;
