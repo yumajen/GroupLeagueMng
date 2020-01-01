@@ -3,7 +3,7 @@
         <ng-container matColumnDef="information">
             <th mat-header-cell *matHeaderCellDef></th>
             <td mat-cell *matCellDef="let player1">
-                <mat-icon class="info">info</mat-icon>
+                <mat-icon class="info" (click)="openDialogPlayerOtherItems(player1)">info</mat-icon>
             </td>
         </ng-container>
         <ng-container matColumnDef="verticalName">
