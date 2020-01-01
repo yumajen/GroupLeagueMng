@@ -1,0 +1,9 @@
+<div>
+    <h3>{{name}}</h3>
+    <div *ngFor="let item of otherItems">
+        {{item[0]}}： {{item[1]}}
+    </div>
+    <div class="button">
+        <button mat-raised-button mat-dialog-close="cancel">閉じる</button>
+    </div>
+</div>

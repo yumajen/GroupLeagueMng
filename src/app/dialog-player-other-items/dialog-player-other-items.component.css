@@ -1,0 +1,13 @@
+/* 共通 */
+button {
+    border-radius: 5px;
+    font-weight: bold;
+    outline: none;
+    float: right;
+}
+button:hover {
+    cursor: pointer;
+}
+.button {
+    margin-top: 20px;
+}

@@ -15,6 +15,7 @@ import { MatchListsComponent } from './match-lists/match-lists.component';
 import { LeagueTableComponent } from './league-table/league-table.component';
 import { GradesTableComponent } from './grades-table/grades-table.component';
 import { MatTableModule } from '@angular/material/table';
+import { DialogPlayerOtherItemsComponent } from './dialog-player-other-items/dialog-player-other-items.component';
 
 @NgModule({
   declarations: [
@@ -24,7 +25,8 @@ import { MatTableModule } from '@angular/material/table';
     LeagueComponent,
     MatchListsComponent,
     LeagueTableComponent,
-    GradesTableComponent
+    GradesTableComponent,
+    DialogPlayerOtherItemsComponent,
   ],
   imports: [
     BrowserModule,
@@ -40,6 +42,9 @@ import { MatTableModule } from '@angular/material/table';
   ],
   providers: [InMemoryDataService],
   bootstrap: [AppComponent],
-  entryComponents: [ShuffleComponent]
+  entryComponents: [
+    ShuffleComponent,
+    DialogPlayerOtherItemsComponent,
+  ]
 })
 export class AppModule { }

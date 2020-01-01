@@ -43,12 +43,13 @@ td:first-child {
   border-left: solid 1px #a9a9a9;
 }
 .info {
-  font-size: 15px;
+  font-size: 17px;
   color: #a9a9a9;
   text-align: center;
 }
 .info:hover {
   cursor: pointer;
+  color: #5c5c5c;
 }
 .result-cell {
   text-align: center;

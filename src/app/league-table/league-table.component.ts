@@ -4,6 +4,8 @@ import { Group } from '../group';
 import { Player } from '../player';
 import { Linkage } from '../linkage';
 import { PlayersService } from '../players.service';
+import { DialogPlayerOtherItemsComponent } from '../dialog-player-other-items/dialog-player-other-items.component';
+import { MatDialog } from '@angular/material';
 
 const RESULT_SYMBOL = {
   WIN: '◯',
@@ -29,6 +31,7 @@ export class LeagueTableComponent implements OnInit {
 
   constructor(
     private playersService: PlayersService,
+    public matDialog: MatDialog,
   ) { }
 
   ngOnInit() {
@@ -145,6 +148,17 @@ export class LeagueTableComponent implements OnInit {
 
     let resultSymbol = result.isDraw ? RESULT_SYMBOL.DRAW : (playerId1 == result.winnerId ? RESULT_SYMBOL.WIN : RESULT_SYMBOL.LOSE)
     return resultSymbol;
+  }
+
+  openDialogPlayerOtherItems(player: Player): void {
+    this.matDialog.open(DialogPlayerOtherItemsComponent, {
+      data: {
+        'name': player.name,
+        'otherItems': player.otherItems,
+      },
+      width: '30vw',
+      disableClose: false,
+    });
   }
 
 }
