@@ -142,8 +142,8 @@ export class ShuffleComponent implements OnInit {
   registPlayers(): void {
     forkJoin(this.playersService.executeRegisterPlayers(this.data.inputInformations))
       .subscribe(
-        (player) => {
-          // 成功時の処理
+        () => {
+          this.playersService.isPlayersRegistered = true;
         }
       );
   }

@@ -15,6 +15,9 @@ export class PlayersService {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
   };
 
+  isPlayersRegistered = false; // プレイヤーを登録済みかどうか判定
+  otherItemLabels = []; // その他情報の項目名配列
+
   constructor(
     private http: HttpClient
   ) { }
@@ -61,6 +64,10 @@ export class PlayersService {
     });
 
     return observables;
+  }
+
+  storeOtherItemLabels(otherItemLabels: any[]): void {
+    this.otherItemLabels = otherItemLabels;
   }
 
 }

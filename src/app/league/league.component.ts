@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { Player } from '../player';
 import { Group } from '../group';
@@ -33,6 +33,7 @@ export class LeagueComponent implements OnInit {
   matchInformations: MatchInformation[];
   matcheResults: any[] = []; // 対戦組合わせ毎の結果(データ更新用パラメータ)
   isLeaguesUpdated = false;  // 更新ボタンが押されたかどうかを判定し、成績計算実行の有無を分ける
+  isCalSettingChanged = false; // 勝ち点、順位計算条件が変更されたかどうかを判定する
 
   constructor(
     private playersService: PlayersService,
@@ -42,6 +43,9 @@ export class LeagueComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.calSettingForm.valueChanges.subscribe(v => {
+      this.isCalSettingChanged = true;
+    });
     this.getPlayers();
     this.getGroups();
   }
@@ -136,10 +140,6 @@ export class LeagueComponent implements OnInit {
     return eachMatchInfos;
   }
 
-  isSameObject(obj1, obj2): boolean {
-    return JSON.stringify(obj1) === JSON.stringify(obj2);
-  }
-
   sortArray(array: any[], direction: string): void {
     array.sort(function (a, b) {
       let ida = a.id;
@@ -156,10 +156,12 @@ export class LeagueComponent implements OnInit {
 
   updateLeagues(): void {
     this.isLeaguesUpdated = true;
-    if (this.matchesService.isUpdatePraramsSet) {
+    if (this.matchesService.isUpdatePraramsSet || this.isCalSettingChanged) {
       forkJoin(this.matchesService.executeUpdateMatches())
         .subscribe(
-          () => { }
+          () => {
+            this.isCalSettingChanged = false;
+          }
         )
       this.getMatchInformations();
     }
@@ -174,7 +176,7 @@ export class LeagueComponent implements OnInit {
         if (!info.winnerId && !info.isDraw) {
           return;
         }
-        if (this.isSameObject(info.match[0].id, player.id) || this.isSameObject(info.match[1].id, player.id)) {
+        if (info.match[0] == player.id || info.match[1] == player.id) {
           return info;
         }
       });
@@ -239,8 +241,8 @@ export class LeagueComponent implements OnInit {
       if (result.score1 == undefined || result.score2 == undefined) {
         return;
       }
-      let gains = result.match[0].id == player.id ? result.score1 : result.score2;
-      let losts = result.match[0].id == player.id ? result.score2 : result.score1;
+      let gains = result.match[0] == player.id ? result.score1 : result.score2;
+      let losts = result.match[0] == player.id ? result.score2 : result.score1;
       totalGains += gains;
       totalLosts += losts;
     });
@@ -342,8 +344,8 @@ export class LeagueComponent implements OnInit {
               return;
             }
             let targetMatch = matchInformationsCopy.find((matchInfo, i) => {
-              if (matchInfo.match[0].id == player1Id && matchInfo.match[1].id == player2Id ||
-                matchInfo.match[0].id == player2Id && matchInfo.match[1].id == player1Id) {
+              if (matchInfo.match[0] == player1Id && matchInfo.match[1] == player2Id ||
+                matchInfo.match[0] == player2Id && matchInfo.match[1] == player1Id) {
                 matchInformationsCopy.splice(i, 1);
                 return matchInfo;
               }

@@ -7,8 +7,10 @@
                 <th>名前</th>
                 <th *ngFor="let otherItemLabel of otherItemLabels; let i = index">
                     {{otherItemLabel}}
-                    <mat-icon class="delete-column" (click)="deleteAdditionalColumn(otherItemLabel, i)">
-                        cancel_presentation</mat-icon>
+                    <mat-icon *ngIf="!isPlayersRegistered" class="delete-column"
+                        (click)="deleteAdditionalColumn(otherItemLabel, i)">
+                        cancel_presentation
+                    </mat-icon>
                 </th>
                 <th>
                 </th>
@@ -29,14 +31,19 @@
             </tr>
         </tbody>
     </table>
-    <button (click)=" addInputForm()">+</button>
+    <button *ngIf="!isPlayersRegistered" (click)="addInputForm()">+</button>
 </div>
-<div class="block">
+<div *ngIf="!isPlayersRegistered" class="block">
     <input type="text" #additionalItem>
     <button (click)="addItem(additionalItem.value); additionalItem.value = ''">項目追加</button>
 </div>
 <div class="block">
-    <button (click)="deleteInputInformations()">削除</button>
-    <!-- <button>棄権</button> -->
-    <button (click)="openShuffleDialog()">完了</button>
+    <ng-container *ngIf="!isPlayersRegistered; else elseBlock">
+        <button (click)="deleteInputInformations()">削除</button>
+        <button (click)="openShuffleDialog()">完了</button>
+    </ng-container>
+    <ng-template #elseBlock>
+        <button>棄権</button>
+        <button (click)="updatePlayer()">更新</button>
+    </ng-template>
 </div>
