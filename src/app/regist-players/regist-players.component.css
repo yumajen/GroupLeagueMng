@@ -43,3 +43,6 @@ td input {
 td input:focus {
   background-color: #e0ffe0;
 }
+.block {
+  margin-top: 10px;
+}

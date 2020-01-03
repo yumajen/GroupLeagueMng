@@ -149,7 +149,7 @@ export class MatchListsComponent implements OnInit {
       let breakPlayer = this.isSameObject(player1, dummyPlayer) ? player2 : player1;
       this.setBreakPlayer(this.group.id, roundNumber, breakPlayer);
     } else {
-      matches.push([player1, player2]);
+      matches.push([player1.id, player2.id]);
     }
 
     for (let i = 1; i <= this.numberOfMatches - 1; i++) {
@@ -159,7 +159,7 @@ export class MatchListsComponent implements OnInit {
         let breakPlayer = this.isSameObject(player1, dummyPlayer) ? player2 : player1;
         this.setBreakPlayer(this.group.id, roundNumber, breakPlayer);
       } else {
-        matches.push([player1, player2]);
+        matches.push([player1.id, player2.id]);
       }
     }
 
@@ -242,7 +242,7 @@ export class MatchListsComponent implements OnInit {
     return target && target.index == buttonIndex;
   }
 
-  inputResult(matchInfo: MatchInformation, score1: number, score2: number, buttonIndex: number, match: Player[] = null): void {
+  inputResult(matchInfo: MatchInformation, score1: number, score2: number, buttonIndex: number, match: number[] = null): void {
     let winnerId: number;
     let isScoreFilled: boolean = !!score1 && !!score2;
 
@@ -257,7 +257,7 @@ export class MatchListsComponent implements OnInit {
     }
 
     if (match) {
-      winnerId = match[buttonIndex] ? match[buttonIndex].id : null;
+      winnerId = match[buttonIndex] || null;
     }
 
     // 得点が入力されている場合の処理
@@ -265,10 +265,10 @@ export class MatchListsComponent implements OnInit {
       // 得点に応じたボタンの押下状態及び勝敗計算になる
       if (score1 > score2) {
         buttonIndex = 0; // player1が勝利
-        winnerId = match[buttonIndex].id;
+        winnerId = match[buttonIndex];
       } else if (score1 < score2) {
         buttonIndex = 1; // player2が勝利
-        winnerId = match[buttonIndex].id;
+        winnerId = match[buttonIndex];
       } else {
         buttonIndex = 2; // 引き分け
       }
@@ -350,6 +350,14 @@ export class MatchListsComponent implements OnInit {
       }
       return 0;
     });
+  }
+
+  getPlayerName(playerId: number): string {
+    const targetPlayer = this.eachPlayers.find((player) => {
+      return player.id == playerId;
+    });
+
+    return targetPlayer.name;
   }
 
 }

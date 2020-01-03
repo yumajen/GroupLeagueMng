@@ -94,10 +94,6 @@ export class LeagueTableComponent implements OnInit {
     return eachMatchInfos;
   }
 
-  isSameObject(obj1, obj2): boolean {
-    return JSON.stringify(obj1) === JSON.stringify(obj2);
-  }
-
   isSuperiorOfFinalRound(isSuperior: boolean): boolean {
     // 各グループで既に終了した対戦数
     let numberOfMatches = this.matchInformations.filter((info) => {
@@ -132,7 +128,7 @@ export class LeagueTableComponent implements OnInit {
 
     let eachMatchInfos = this.getMatchInformationsOfEachGroups();
     let result = eachMatchInfos.find((info) => {
-      let match = [info.match[0].id, info.match[1].id];
+      let match = [info.match[0], info.match[1]];
       if (match.indexOf(playerId1) != -1 && match.indexOf(playerId2) != -1) {
         return info;
       }

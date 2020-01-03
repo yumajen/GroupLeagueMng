@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { PlayersService } from '../players.service';
 import { MatDialog } from '@angular/material';
 import { ShuffleComponent } from '../shuffle/shuffle.component';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-regist-players',
@@ -12,7 +13,8 @@ export class RegistPlayersComponent implements OnInit {
 
   inputInformations: any[]; // 入力されたプレイヤー情報（DB登録前）
   checkedInformations: number[]; // チェックボックスが有効となっているプレイヤー情報 
-  otherItemLabels: string[]; // 任意追加項目名
+  otherItemLabels: string[] = []; // 任意追加項目名
+  isPlayersRegistered = false; // プレイヤーを登録済みかどうか判定
 
   constructor(
     public matDialog: MatDialog,
@@ -32,10 +34,14 @@ export class RegistPlayersComponent implements OnInit {
       }
     );
     this.checkedInformations = [];
-    this.otherItemLabels = [];
   }
 
   ngOnInit() {
+    this.isPlayersRegistered = this.playersService.isPlayersRegistered;
+    if (this.isPlayersRegistered) {
+      this.otherItemLabels = this.playersService.otherItemLabels;
+      this.getPlayers();
+    }
   }
 
   getOtherItems(id: number): any {
@@ -84,12 +90,13 @@ export class RegistPlayersComponent implements OnInit {
     });
 
     this.otherItemLabels.push(additionalKey);
+    this.playersService.storeOtherItemLabels(this.otherItemLabels);
   }
 
   getPlayers(): void {
     this.playersService.getPlayers().subscribe(
       (players) => {
-        console.log(players);
+        this.inputInformations = players;
       }
     );
   }
@@ -132,6 +139,13 @@ export class RegistPlayersComponent implements OnInit {
       height: '90vh',
       disableClose: true
     });
+  }
+
+  updatePlayer() {
+    forkJoin(this.playersService.executeUpdatePlayers(this.inputInformations))
+      .subscribe(
+        () => { }
+      );
   }
 
 }
