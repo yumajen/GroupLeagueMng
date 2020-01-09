@@ -8,4 +8,5 @@ export class Player {
     rank: number;
     upDown: number;
     isSuperior: boolean;
+    isAbstained: boolean;
 }

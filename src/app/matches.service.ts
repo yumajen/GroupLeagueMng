@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { MatchInformation } from './matchInformation';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 @Injectable({
@@ -17,6 +17,8 @@ export class MatchesService {
   registerParams: any[] = []; // 各グループ毎の対戦情報初期登録用パラメータ
   updateParams: any[] = []; // 各グループ毎のmatch-listから追加される対戦情報更新用パラメータ
   isUpdatePraramsSet = false;
+  matchUpdatedGroups: number[] = []; // 対戦情報に変更があったグループのIDを保持する配列
+  dataChanged = new Subject<MatchInformation[]>();
 
   constructor(
     private http: HttpClient
@@ -89,5 +91,24 @@ export class MatchesService {
     this.updateParams = [];
     this.isUpdatePraramsSet = false;
     return observables;
+  }
+
+  // 対戦情報新規作成または更新後に呼び出される
+  sendMatcheInformations() {
+    this.getMatcheInformations().subscribe(
+      (matchInformations) => {
+        this.dataChanged.next(matchInformations)
+      }
+    );
+  }
+
+  setMatchUpdatedGroups(groupId: number): void {
+    if (this.matchUpdatedGroups.indexOf(groupId) == -1) {
+      this.matchUpdatedGroups.push(groupId);
+    }
+  }
+
+  clearMatchUpdatedGroups(): void {
+    this.matchUpdatedGroups = [];
   }
 }

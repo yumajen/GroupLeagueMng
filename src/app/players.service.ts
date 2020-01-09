@@ -17,6 +17,8 @@ export class PlayersService {
 
   isPlayersRegistered = false; // プレイヤーを登録済みかどうか判定
   otherItemLabels = []; // その他情報の項目名配列
+  isExecuteAbstention = false; // 棄権処理を行ったかどうか判定
+  abstainedPlayerIds: number[] = []; // 棄権プレイヤーのIDを保持する配列
 
   constructor(
     private http: HttpClient
@@ -68,6 +70,16 @@ export class PlayersService {
 
   storeOtherItemLabels(otherItemLabels: any[]): void {
     this.otherItemLabels = otherItemLabels;
+  }
+
+  setAbstainedPlayerIds(playerId: number): void {
+    if (this.abstainedPlayerIds.indexOf(playerId) == -1) {
+      this.abstainedPlayerIds.push(playerId);
+    }
+  }
+
+  clearAbstainedPlayerIds(): void {
+    this.abstainedPlayerIds = [];
   }
 
 }

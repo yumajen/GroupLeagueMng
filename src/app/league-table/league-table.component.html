@@ -19,6 +19,6 @@
         </ng-container>
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let player1; columns: displayedColumns;"
-            [class.superior]="isSuperiorOfFinalRound(player1.isSuperior)"></tr>
+            [class.superior]="isSuperiorOfFinalRound(player1.isSuperior)" [class.abstained]="player1.isAbstained"></tr>
     </mat-table>
 </div>

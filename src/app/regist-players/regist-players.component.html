@@ -18,16 +18,22 @@
         </thead>
         <tbody>
             <tr *ngFor="let inputInfomation of inputInformations">
-                <td>{{inputInfomation.id}}</td>
-                <td>
+                <td [class.abstained]="inputInfomation.isAbstained">{{inputInfomation.id}}</td>
+                <td [class.abstained]="inputInfomation.isAbstained">
                     <input type="text" value={{inputInfomation.name}} #element
-                        (blur)="addInputElement(inputInfomation.id, 'name', element.value)">
+                        (blur)="addInputElement(inputInfomation.id, 'name', element.value)"
+                        [attr.disabled]="inputInfomation.isAbstained ? true : null">
                 </td>
-                <td *ngFor="let otherItem of getOtherItems(inputInfomation.id)">
+                <td *ngFor="let otherItem of getOtherItems(inputInfomation.id)"
+                    [class.abstained]="inputInfomation.isAbstained">
                     <input type="text" value={{otherItem[1]}} #element
-                        (blur)="addInputElement(inputInfomation.id, otherItem[0], element.value)">
+                        (blur)="addInputElement(inputInfomation.id, otherItem[0], element.value)"
+                        [attr.disabled]="inputInfomation.isAbstained ? true : null">
                 </td>
-                <td><input type="checkbox" (change)="switchDeleteTaeget(inputInfomation)"></td>
+                <td [class.abstained]="inputInfomation.isAbstained">
+                    <input *ngIf="!inputInfomation.isAbstained" type="checkbox"
+                        (change)="switchCheckedTaeget(inputInfomation)">
+                </td>
             </tr>
         </tbody>
     </table>
@@ -43,7 +49,7 @@
         <button (click)="openShuffleDialog()">完了</button>
     </ng-container>
     <ng-template #elseBlock>
-        <button>棄権</button>
+        <button (click)="abstainPlayers()">棄権</button>
         <button (click)="updatePlayer()">更新</button>
     </ng-template>
 </div>

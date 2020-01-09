@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { PlayersService } from '../players.service';
 import { MatDialog } from '@angular/material';
 import { ShuffleComponent } from '../shuffle/shuffle.component';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-regist-players',
@@ -15,6 +15,7 @@ export class RegistPlayersComponent implements OnInit {
   checkedInformations: number[]; // チェックボックスが有効となっているプレイヤー情報 
   otherItemLabels: string[] = []; // 任意追加項目名
   isPlayersRegistered = false; // プレイヤーを登録済みかどうか判定
+  subscriptions: Subscription[] = [];
 
   constructor(
     public matDialog: MatDialog,
@@ -31,6 +32,7 @@ export class RegistPlayersComponent implements OnInit {
         rank: 1,
         upDown: 0,
         isSuperior: false,
+        isAbstained: false,
       }
     );
     this.checkedInformations = [];
@@ -41,6 +43,12 @@ export class RegistPlayersComponent implements OnInit {
     if (this.isPlayersRegistered) {
       this.otherItemLabels = this.playersService.otherItemLabels;
       this.getPlayers();
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.subscriptions) {
+      this.subscriptions.forEach(sub => sub.unsubscribe());
     }
   }
 
@@ -69,6 +77,7 @@ export class RegistPlayersComponent implements OnInit {
         rank: 1,
         upDown: 0,
         isSuperior: false,
+        isAbstained: false,
       }
     );
   }
@@ -94,14 +103,16 @@ export class RegistPlayersComponent implements OnInit {
   }
 
   getPlayers(): void {
-    this.playersService.getPlayers().subscribe(
-      (players) => {
-        this.inputInformations = players;
-      }
+    this.subscriptions.push(
+      this.playersService.getPlayers().subscribe(
+        (players) => {
+          this.inputInformations = players;
+        }
+      )
     );
   }
 
-  switchDeleteTaeget(inputInformation: any): void {
+  switchCheckedTaeget(inputInformation: any): void {
     if (this.checkedInformations.includes(inputInformation)) {
       this.checkedInformations.splice(this.checkedInformations.indexOf(inputInformation), 1)
     } else {
@@ -142,10 +153,30 @@ export class RegistPlayersComponent implements OnInit {
   }
 
   updatePlayer() {
-    forkJoin(this.playersService.executeUpdatePlayers(this.inputInformations))
-      .subscribe(
-        () => { }
-      );
+    this.subscriptions.push(
+      forkJoin(this.playersService.executeUpdatePlayers(this.inputInformations))
+        .subscribe(
+          () => { }
+        )
+    );
+  }
+
+  abstainPlayers() {
+    this.inputInformations.forEach((inputInformation) => {
+      if (this.checkedInformations.indexOf(inputInformation) != -1) {
+        inputInformation.isAbstained = true;
+        this.playersService.setAbstainedPlayerIds(inputInformation.id);
+      };
+    });
+
+    const abstainedPlayers = this.inputInformations.filter((inputInformation) => {
+      return inputInformation.isAbstained;
+    })
+    if (abstainedPlayers.length > 0) {
+      this.playersService.isExecuteAbstention = true;
+    }
+
+    this.updatePlayer();
   }
 
 }

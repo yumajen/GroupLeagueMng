@@ -1,17 +1,18 @@
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { Group } from '../group';
 import { MatchInformation } from '../matchInformation';
 import { Linkage } from '../linkage';
 import { Player } from '../player';
 import { MatchesService } from '../matches.service';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Observable, Subscription } from 'rxjs';
+import { PlayersService } from '../players.service';
 
 @Component({
   selector: 'app-match-lists',
   templateUrl: './match-lists.component.html',
   styleUrls: ['./match-lists.component.css']
 })
-export class MatchListsComponent implements OnInit {
+export class MatchListsComponent implements OnInit, OnDestroy {
 
   @Input() group: Group;
   @Input() players: Player[];
@@ -19,6 +20,8 @@ export class MatchListsComponent implements OnInit {
 
   eachPlayers: Player[] = [];
   matchInformations: MatchInformation[] = [];
+  matchInformations$: Observable<MatchInformation[]>;
+  subscription: Subscription;
   numberOfMatches: number; // 各グループ1回戦当たりの対戦数
   shuffledPlayers: Player[] = []; // シャッフルされたプレイヤーの配列
   centerPlayer: Player; // Kirkmanの組分け法の円の中心に配置されるプレイヤー
@@ -29,11 +32,25 @@ export class MatchListsComponent implements OnInit {
 
   constructor(
     private matchesService: MatchesService,
+    private playersService: PlayersService,
   ) { }
 
   ngOnInit() {
     this.getPlayersOfEachGroups(this.group.id);
-    this.getMatchInformations();
+    // 初期の画面描画時に1回対戦情報を取得する
+    this.initialGetMatchInformations();
+
+    // 対戦情報が更新される度に対戦情報を取得し直す
+    this.matchInformations$ = this.matchesService.dataChanged;
+    this.matchInformations$.subscribe(info$ => {
+      this.matchInformations = info$;
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
   getPlayersOfEachGroups(groupId: number): void {
@@ -56,13 +73,26 @@ export class MatchListsComponent implements OnInit {
     this.sortArray(this.eachPlayers, 'asc');
   }
 
-  getMatchInformations(): void {
+  initialGetMatchInformations(): void {
     this.matchesService.getMatcheInformations().subscribe(
       (matchInformations) => {
         this.matchInformations = matchInformations;
+        // 初期の抽選処理
         if (this.matchInformations.length == 0) {
           this.executeLottery();
           this.registerMatcheInformation();
+        }
+        // 棄権者が設定された場合の処理
+        if (this.playersService.isExecuteAbstention) {
+          this.setDefaultResult();
+          this.updateMatches();
+
+          const targetGroups = this.getPlayerAbstainedGroups();
+          // この対戦リストコンポーネントが一番最後のグループのものである場合のみ棄権プレイヤーIDと棄権処理実行フラグをリセット
+          if (this.group.id == targetGroups[targetGroups.length - 1]) {
+            this.playersService.clearAbstainedPlayerIds();
+            this.playersService.isExecuteAbstention = false;
+          }
         }
       }
     );
@@ -127,6 +157,7 @@ export class MatchListsComponent implements OnInit {
       rank: null,
       upDown: 0,
       isSuperior: false,
+      isAbstained: false,
     };
 
     if (roundNumber == 1) {
@@ -190,7 +221,8 @@ export class MatchListsComponent implements OnInit {
         winnerId: null,
         isDraw: false,
         score1: null,
-        score2: null
+        score2: null,
+        isDefault: false,
       };
       this.inputMatchInfors.push(inputMatchInfo);
     });
@@ -200,7 +232,7 @@ export class MatchListsComponent implements OnInit {
     forkJoin(this.matchesService.executeRegisterMatches())
       .subscribe(
         () => {
-          this.getMatchInformations();
+          this.matchesService.sendMatcheInformations();
         }
       )
   }
@@ -245,6 +277,11 @@ export class MatchListsComponent implements OnInit {
   inputResult(matchInfo: MatchInformation, score1: number, score2: number, buttonIndex: number, match: number[] = null): void {
     let winnerId: number;
     let isScoreFilled: boolean = !!score1 && !!score2;
+
+    // 棄権者が関わる対戦の場合は結果の登録を行わない
+    if (this.isContainedAbstainedPlayer(matchInfo)) {
+      return;
+    }
 
     // 結果ボタンの押下なし、かつプレイヤー1, 2共に得点の入力がない場合は結果の登録を行わない
     if (buttonIndex == undefined && !isScoreFilled) {
@@ -331,11 +368,13 @@ export class MatchListsComponent implements OnInit {
       winnerId: winnerId,
       isDraw: isDraw,
       score1: score1 ? Number(score1) : null,
-      score2: score2 ? Number(score2) : null
+      score2: score2 ? Number(score2) : null,
+      isDefault: false,
     }
     this.matcheResults.push(updateInfo);
     this.sortArray(this.matcheResults, 'asc');
     this.matchesService.setUpdateParams(this.matcheResults);
+    this.matchesService.setMatchUpdatedGroups(this.group.id);
   }
 
   sortArray(array: any[], direction: string): void {
@@ -353,11 +392,91 @@ export class MatchListsComponent implements OnInit {
   }
 
   getPlayerName(playerId: number): string {
-    const targetPlayer = this.eachPlayers.find((player) => {
+    return this.getPlayerInformation(playerId).name;
+  }
+
+  isAbstainedPlayer(playerId: number): boolean {
+    return this.getPlayerInformation(playerId).isAbstained;
+  }
+
+  getPlayerInformation(playerId: number): Player {
+    return this.eachPlayers.find((player) => {
       return player.id == playerId;
     });
+  }
 
-    return targetPlayer.name;
+  setDefaultResult() {
+    const abstainedPlayers = this.eachPlayers.filter((inputInformation) => {
+      return inputInformation.isAbstained;
+    })
+
+    let updateInformations = [];
+    abstainedPlayers.forEach((abstainedPlayer) => {
+      const targrtMatches = this.matchInformations.filter((info) => {
+        if (info.isDefault) {
+          return false;
+        }
+        // 棄権プレイヤーに関わる対戦組合わせかつ未対戦の組合わせが対象
+        return (info.match[0] == abstainedPlayer.id || info.match[1] == abstainedPlayer.id) && (!info.isDraw && info.winnerId == null);
+      });
+
+      targrtMatches.forEach((info) => {
+        // 両プレイヤー共棄権している場合は便宜上引き分け扱いとする
+        const isDraw = this.isAbstainedPlayer(info.match[0]) && this.isAbstainedPlayer(info.match[1]);
+        const winnerId = isDraw ? null : (this.isAbstainedPlayer(info.match[0]) ? info.match[1] : info.match[0]);
+
+        let updateInfo = {
+          id: info.id,
+          groupId: info.groupId,
+          roundNumber: info.roundNumber,
+          match: info.match,
+          winnerId: winnerId,
+          isDraw: isDraw,
+          score1: null,
+          score2: null,
+          isDefault: true,
+        }
+        updateInformations.push(updateInfo);
+      });
+    });
+
+    this.matcheResults.push(...updateInformations);
+    this.sortArray(this.matcheResults, 'asc');
+    this.matchesService.setUpdateParams(this.matcheResults);
+  }
+
+  updateMatches(): void {
+    forkJoin(this.matchesService.executeUpdateMatches())
+      .subscribe(
+        () => {
+          this.matchesService.sendMatcheInformations();
+        }
+      )
+  }
+
+  getPlayerAbstainedGroups(): number[] {
+    let targetGroupIds = [];
+    this.playersService.abstainedPlayerIds.forEach((playerId) => {
+      const targetLinkage = this.linkages.find((linkage) => {
+        return linkage.playerId == playerId;
+      });
+      if (targetLinkage) {
+        targetGroupIds.push(targetLinkage.groupId);
+      }
+    });
+
+    return targetGroupIds;
+  }
+
+  isContainedAbstainedPlayer(matchInformation: MatchInformation): boolean {
+    const player1 = this.eachPlayers.find((player) => {
+      return player.id == matchInformation.match[0];
+    });
+    const player2 = this.eachPlayers.find((player) => {
+      return player.id == matchInformation.match[1];
+    });
+
+    return matchInformation.isDefault || (player1.isAbstained || player2.isAbstained);
   }
 
 }
