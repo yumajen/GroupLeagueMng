@@ -85,6 +85,8 @@ export class GradesTableComponent implements OnInit {
         return 'arrow_forward';
       case -1:
         return 'arrow_downward';
+      case -999:
+        return 'remove';
     }
   }
 }

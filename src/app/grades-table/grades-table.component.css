@@ -55,3 +55,6 @@ mat-icon#upDown_0 {
 mat-icon#upDown_1 {
   color: #ff0000;
 }
+.abstained {
+  background-color: #777777;
+}

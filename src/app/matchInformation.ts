@@ -9,4 +9,5 @@ export class MatchInformation {
     isDraw: boolean;
     score1: number;
     score2: number;
+    isDefault: boolean;
 }

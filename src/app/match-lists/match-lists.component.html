@@ -4,7 +4,9 @@
         <div *ngFor="let matchInfo of getMatchInformationsOfEachGroups(i + 1);">
             <table class="match-parts">
                 <tr>
-                    <td class="match-player">{{getPlayerName(matchInfo.match[0])}}</td>
+                    <td class="match-player" [class.abstained]="isAbstainedPlayer(matchInfo.match[0])">
+                        {{getPlayerName(matchInfo.match[0])}}
+                    </td>
                     <td class="match-forms">
                         <div class="result">
                             <button class="result-win"
@@ -25,13 +27,15 @@
                         <div class="score">
                             <input type="text" class="score-form" value="{{matchInfo.score1}}"
                                 (blur)="inputResult(matchInfo, score1.value, score2.value, null, matchInfo.match)"
-                                #score1> -
+                                [attr.disabled]="isContainedAbstainedPlayer(matchInfo) ? true : null" #score1> -
                             <input type="text" class="score-form" value="{{matchInfo.score2}}"
                                 (blur)="inputResult(matchInfo, score1.value, score2.value, null, matchInfo.match)"
-                                #score2>
+                                [attr.disabled]="isContainedAbstainedPlayer(matchInfo) ? true : null" #score2>
                         </div>
                     </td>
-                    <td class="match-player">{{getPlayerName(matchInfo.match[1])}}</td>
+                    <td class="match-player" [class.abstained]="isAbstainedPlayer(matchInfo.match[1])">
+                        {{getPlayerName(matchInfo.match[1])}}
+                    </td>
                 </tr>
             </table>
         </div>

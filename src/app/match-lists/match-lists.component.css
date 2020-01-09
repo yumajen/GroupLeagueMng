@@ -94,3 +94,9 @@ button {
     box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.2);
     border-bottom: none;
   }
+  .abstained {
+    background-color: #777777;
+  }
+  input.score-form:disabled {
+    background-color: #dbdada;
+  }

@@ -28,6 +28,7 @@ export class LeagueTableComponent implements OnInit {
 
   dataSource: Player[] = [];
   displayedColumns: String[] = ['information', 'verticalName'];
+  eachPlayers: Player[] = [];
 
   constructor(
     private playersService: PlayersService,
@@ -35,8 +36,8 @@ export class LeagueTableComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    let numberOfPlayers = this.getPlayersOfEachGroups().length;
-    this.setDisplayedColumns(numberOfPlayers);
+    this.eachPlayers = this.getPlayersOfEachGroups();
+    this.setDisplayedColumns(this.eachPlayers.length);
   }
 
   getPlayersOfEachGroups(): Player[] {
@@ -103,17 +104,12 @@ export class LeagueTableComponent implements OnInit {
     }).length;
 
     // 各グループの人数
-    let numberOfPlayers = this.getPlayersOfEachGroups().length;
+    let numberOfPlayers = this.eachPlayers.length;
+
     // 各グループの最大対戦数
     let maxMatches = (numberOfPlayers - 1) * numberOfPlayers / 2;
 
     return isSuperior && numberOfMatches == maxMatches;
-  }
-
-  updatePlayer(updatePlayerInfo: any) {
-    this.playersService.updatePlayer(updatePlayerInfo as Player).subscribe(
-      () => { }
-    );
   }
 
   getMatchResultSymbol(playerId1: number, playerId2: number): string {

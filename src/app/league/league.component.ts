@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { Player } from '../player';
 import { Group } from '../group';
@@ -7,14 +7,14 @@ import { PlayersService } from '../players.service';
 import { GroupsService } from '../groups.service';
 import { MatchesService } from '../matches.service';
 import { MatchInformation } from '../matchInformation';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-league',
   templateUrl: './league.component.html',
   styleUrls: ['./league.component.css']
 })
-export class LeagueComponent implements OnInit {
+export class LeagueComponent implements OnInit, OnDestroy {
 
   // 勝ち点、順位計算条件設定用のフォーム(数値は初期値)
   calSettingForm = this.fb.group({
@@ -31,6 +31,8 @@ export class LeagueComponent implements OnInit {
   groups: Group[];
   linkages: Linkage[];
   matchInformations: MatchInformation[];
+  matchInformations$: Observable<MatchInformation[]>;
+  subscription: Subscription;
   matcheResults: any[] = []; // 対戦組合わせ毎の結果(データ更新用パラメータ)
   isLeaguesUpdated = false;  // 更新ボタンが押されたかどうかを判定し、成績計算実行の有無を分ける
   isCalSettingChanged = false; // 勝ち点、順位計算条件が変更されたかどうかを判定する
@@ -48,6 +50,22 @@ export class LeagueComponent implements OnInit {
     });
     this.getPlayers();
     this.getGroups();
+    // 初期の画面描画時に1回対戦情報を取得する
+    this.initialGetMatchInformations();
+
+    // 対戦情報が更新される度に対戦情報を取得し直す
+    this.matchInformations$ = this.matchesService.dataChanged;
+    this.subscription = this.matchInformations$.subscribe(info$ => {
+      this.isLeaguesUpdated = true;
+      this.matchInformations = info$;
+      this.getLinkages();
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
   }
 
   getPlayers(): void {
@@ -67,23 +85,24 @@ export class LeagueComponent implements OnInit {
     );
   }
 
+  // TODO: Linkageの使用はやめる(playerに直接groupIdを持たせる)
   getLinkages(): void {
     this.groupsService.getLinkages().subscribe(
       (linkages) => {
         this.linkages = linkages;
-        this.getMatchInformations();
+        if (this.isLeaguesUpdated || this.playersService.isExecuteAbstention) {
+          this.calculateGrades();
+          this.isLeaguesUpdated = false;
+          this.matchesService.clearMatchUpdatedGroups();
+        }
       }
     );
   }
 
-  getMatchInformations(): void {
+  initialGetMatchInformations(): void {
     this.matchesService.getMatcheInformations().subscribe(
       (matchInformations) => {
         this.matchInformations = matchInformations;
-        if (this.isLeaguesUpdated) {
-          this.calculateGrades();
-        }
-        this.isLeaguesUpdated = false;
       }
     );
   }
@@ -155,48 +174,60 @@ export class LeagueComponent implements OnInit {
   }
 
   updateLeagues(): void {
-    this.isLeaguesUpdated = true;
     if (this.matchesService.isUpdatePraramsSet || this.isCalSettingChanged) {
       forkJoin(this.matchesService.executeUpdateMatches())
         .subscribe(
           () => {
+            this.matchesService.sendMatcheInformations();
             this.isCalSettingChanged = false;
           }
         )
-      this.getMatchInformations();
     }
   }
 
   calculateGrades(): void {
     let updatePlayerInfo: any[] = []; // プレイヤー情報更新用パラメータ配列
 
-    this.players.forEach((player) => {
-      // 当該プレイヤーが関わる対戦のみを抽出
-      let targetResults = this.matchInformations.filter((info) => {
-        if (!info.winnerId && !info.isDraw) {
+    // 対戦情報に変更があったグループのみを成績計算の対象にする
+    const targetGroupIds = this.playersService.isExecuteAbstention ? this.getPlayerAbstainedGroups()
+      : this.matchesService.matchUpdatedGroups;
+    targetGroupIds.forEach((groupId) => {
+      const eachPlayers = this.getPlayersOfEachGroups(groupId);
+
+      eachPlayers.forEach((player) => {
+        // 棄権したプレイヤーの成績は計算しない(元のプレイヤー情報をそのままupdatePlayerInfoに追加)
+        if (player.isAbstained) {
+          updatePlayerInfo.push(JSON.parse(JSON.stringify(player)));
           return;
         }
-        if (info.match[0] == player.id || info.match[1] == player.id) {
-          return info;
+
+        // 当該プレイヤーが関わる対戦のみを抽出
+        let targetResults = this.matchInformations.filter((info) => {
+          if (!info.winnerId && !info.isDraw) {
+            return;
+          }
+          if (info.match[0] == player.id || info.match[1] == player.id) {
+            return info;
+          }
+        });
+        if (targetResults.length == 0) {
+          return;
         }
+
+        // 勝ち点、得失点を計算し、プレイヤー情報更新用パラメータを作成する
+        let points = this.calculatePoints(player, targetResults);
+        let score = this.calculateScore(player, targetResults);
+        let playerInfo = JSON.parse(JSON.stringify(player));
+        playerInfo['gains'] = score.gains;
+        playerInfo['losts'] = score.losts;
+        playerInfo['points'] = points;
+
+        updatePlayerInfo.push(playerInfo);
       });
-      if (targetResults.length == 0) {
-        return;
-      }
 
-      // 勝ち点、得失点を計算し、プレイヤー情報更新用パラメータを作成する
-      let points = this.calculatePoints(player, targetResults);
-      let score = this.calculateScore(player, targetResults);
-      let playerInfo = JSON.parse(JSON.stringify(player));
-      playerInfo['gains'] = score.gains;
-      playerInfo['losts'] = score.losts;
-      playerInfo['points'] = points;
-
-      updatePlayerInfo.push(playerInfo);
     });
-
     // 順位を計算し、プレイヤー情報更新用パラメータを更新する
-    this.calculateRank(updatePlayerInfo);
+    this.calculateRank(updatePlayerInfo, targetGroupIds);
 
     // 各プレイヤーの順位変動を判定する
     this.setRankUpDown(updatePlayerInfo);
@@ -249,17 +280,25 @@ export class LeagueComponent implements OnInit {
     return { gains: totalGains, losts: totalLosts };
   }
 
-  calculateRank(updatePlayerInfo: any[]): void {
+  calculateRank(updatePlayerInfo: any[], targetGroupIds: number[]): void {
     // 順位計算条件の設定(勝ち点の考慮は必ず)
     let compareProperties = this.getCompareProperties();
 
-    // グループ毎に順位を計算し、プレイヤー情報更新用パラメータに追加
-    this.groups.forEach((group) => {
-      let eachPlayers = this.getPlayersOfEachGroups(group.id);
-      // グループに含まれるプレイヤー情報の更新パラメータを抽出
+    // 対戦情報に変更があったグループ毎に順位を計算し、プレイヤー情報更新用パラメータに追加
+    targetGroupIds.forEach((groupId) => {
+      let eachPlayers = this.getPlayersOfEachGroups(groupId);
+
+      // 棄権したプレイヤーの順位を最下位にする
+      updatePlayerInfo.forEach((playerInfo) => {
+        if (playerInfo.isAbstained) {
+          playerInfo.rank = eachPlayers.length;
+        }
+      });
+
+      // グループに含まれる(棄権以外)プレイヤー情報の更新パラメータを抽出
       let containedPlayerInfo = updatePlayerInfo.filter((playerInfo) => {
         let targetPlayerInfo = eachPlayers.find((player) => {
-          if (player.id == playerInfo.id) {
+          if (player.id == playerInfo.id && !playerInfo.isAbstained) {
             return playerInfo;
           }
         });
@@ -397,17 +436,21 @@ export class LeagueComponent implements OnInit {
 
   setRankUpDown(updatePlayerInfo: any[]): void {
     updatePlayerInfo.forEach((afterPlayer) => {
-      const beforePlayer = this.players.find((player) => {
-        return player.id == afterPlayer.id;
-      });
-      const rankDifference = beforePlayer.rank - afterPlayer.rank;
-
-      if (rankDifference > 0) {
-        afterPlayer.upDown = 1;
-      } else if (rankDifference < 0) {
-        afterPlayer.upDown = -1;
+      if (afterPlayer.isAbstained) {
+        afterPlayer.upDown = -999;
       } else {
-        afterPlayer.upDown = 0;
+        const beforePlayer = this.players.find((player) => {
+          return player.id == afterPlayer.id;
+        });
+        const rankDifference = beforePlayer.rank - afterPlayer.rank;
+
+        if (rankDifference > 0) {
+          afterPlayer.upDown = 1;
+        } else if (rankDifference < 0) {
+          afterPlayer.upDown = -1;
+        } else {
+          afterPlayer.upDown = 0;
+        }
       }
     });
   }
@@ -419,4 +462,19 @@ export class LeagueComponent implements OnInit {
     });
   }
 
+  getPlayerAbstainedGroups(): number[] {
+    let targetGroupIds = [];
+    this.playersService.abstainedPlayerIds.forEach((playerId) => {
+      const targetLinkage = this.linkages.find((linkage) => {
+        return linkage.playerId == playerId;
+      });
+      if (targetLinkage) {
+        if (targetGroupIds.indexOf(targetLinkage.groupId) == -1) {
+          targetGroupIds.push(targetLinkage.groupId);
+        }
+      }
+    });
+
+    return targetGroupIds;
+  }
 }
