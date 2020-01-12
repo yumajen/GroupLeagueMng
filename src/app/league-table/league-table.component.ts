@@ -2,7 +2,6 @@ import { Component, OnInit, Input } from '@angular/core';
 import { MatchInformation } from '../matchInformation';
 import { Group } from '../group';
 import { Player } from '../player';
-import { Linkage } from '../linkage';
 import { PlayersService } from '../players.service';
 import { DialogPlayerOtherItemsComponent } from '../dialog-player-other-items/dialog-player-other-items.component';
 import { MatDialog } from '@angular/material';
@@ -22,7 +21,6 @@ export class LeagueTableComponent implements OnInit {
 
   @Input() group: Group;
   @Input() players: Player[];
-  @Input() linkages: Linkage[];
   @Input() matchInformations: MatchInformation[] = [];
   @Input() calSettings: any;
 
@@ -41,23 +39,9 @@ export class LeagueTableComponent implements OnInit {
   }
 
   getPlayersOfEachGroups(): Player[] {
-    let targetLinkages = [];
-    let eachPlayers = [];
-
-    targetLinkages = this.linkages.filter((linkage) => {
-      if (linkage.groupId == this.group.id) {
-        return linkage;
-      };
+    let eachPlayers = this.players.filter((player) => {
+      return player.groupId == this.group.id;
     });
-
-    targetLinkages.forEach((linkage) => {
-      this.players.forEach((player) => {
-        if (player.id == linkage['playerId']) {
-          eachPlayers.push(player);
-        }
-      });
-    });
-
     this.sortArray(eachPlayers, 'asc');
 
     return eachPlayers;

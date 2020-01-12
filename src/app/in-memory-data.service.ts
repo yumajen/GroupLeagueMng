@@ -12,12 +12,9 @@ export class InMemoryDataService implements InMemoryDbService {
     const groups = [
     ];
 
-    const linkages = [
-    ];
-
     const matches = [
     ];
 
-    return { players, groups, linkages, matches };
+    return { players, groups, matches };
   }
 }

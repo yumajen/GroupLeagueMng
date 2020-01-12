@@ -36,17 +36,17 @@
 </form>
 <hr>
 <h2>リーグ表</h2>
-<div *ngIf="linkages">
+<div *ngIf="players && groups">
     <div id="group-1" *ngFor="let group of groups">
         <h3 *ngIf="group">{{group.name}}</h3>
         <div class="group-parts">
-            <app-match-lists [group]="group" [players]="players" [linkages]="linkages" class="group-contents">
+            <app-match-lists [group]="group" [players]="players" class="group-contents">
             </app-match-lists>
-            <app-league-table [group]="group" [players]="players" [linkages]="linkages"
-                [matchInformations]="matchInformations" [calSettings]="calSettingForm.value" class="group-contents">
+            <app-league-table [group]="group" [players]="players" [matchInformations]="matchInformations"
+                [calSettings]="calSettingForm.value" class="group-contents">
             </app-league-table>
-            <app-grades-table [group]="group" [players]="players" [linkages]="linkages"
-                [matchInformations]="matchInformations" class="group-contents">
+            <app-grades-table [group]="group" [players]="players" [matchInformations]="matchInformations"
+                class="group-contents">
             </app-grades-table>
         </div>
     </div>

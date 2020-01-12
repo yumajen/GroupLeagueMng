@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Group } from './group';
-import { Linkage } from './linkage';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -11,7 +10,6 @@ import { catchError } from 'rxjs/operators';
 export class GroupsService {
 
   private groupsUrl = 'api/groups'; // Web APIのURL
-  private linkagesUrl = 'api/linkages'; // Web APIのURL
   private httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
   };
@@ -27,24 +25,10 @@ export class GroupsService {
       );
   }
 
-  getLinkages(): Observable<Linkage[]> {
-    return this.http.get<Linkage[]>(this.linkagesUrl)
-      .pipe(
-        catchError(this.handleError<Linkage[]>('getLinkages', []))
-      );
-  }
-
-  registGroup(groupLeague: Group): Observable<Group> {
-    return this.http.post<Group>(this.groupsUrl, groupLeague, this.httpOptions)
+  registerGroup(group: Group): Observable<Group> {
+    return this.http.post<Group>(this.groupsUrl, group, this.httpOptions)
       .pipe(
         catchError(this.handleError<Group>('registGroup'))
-      );
-  }
-
-  registLinkage(linkage: Linkage): Observable<Linkage> {
-    return this.http.post<Linkage>(this.linkagesUrl, linkage, this.httpOptions)
-      .pipe(
-        catchError(this.handleError<Linkage>('registLinkage'))
       );
   }
 
@@ -53,6 +37,14 @@ export class GroupsService {
       console.error(error);
       return of(result as T);
     };
+  }
+
+  executeRegisterGroups(registerParams: any): Observable<Group>[] {
+    let observables = registerParams.map((param) => {
+      return this.registerGroup(param as Group);
+    });
+
+    return observables;
   }
 
 }

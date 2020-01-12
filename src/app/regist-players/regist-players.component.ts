@@ -26,6 +26,7 @@ export class RegistPlayersComponent implements OnInit {
         id: 1,
         name: '',
         otherItems: {},
+        groupId: null,
         gains: null,
         losts: null,
         points: null,
@@ -71,6 +72,7 @@ export class RegistPlayersComponent implements OnInit {
         id: index,
         name: '',
         otherItems: otherItems,
+        groupId: null,
         gains: null,
         losts: null,
         points: null,
@@ -165,7 +167,7 @@ export class RegistPlayersComponent implements OnInit {
     this.inputInformations.forEach((inputInformation) => {
       if (this.checkedInformations.indexOf(inputInformation) != -1) {
         inputInformation.isAbstained = true;
-        this.playersService.setAbstainedPlayerIds(inputInformation.id);
+        this.playersService.setPlayerAbstainedGroups(inputInformation.groupId);
       };
     });
 

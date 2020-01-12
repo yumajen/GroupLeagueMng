@@ -1,7 +1,6 @@
 import { Component, OnInit, Input, OnDestroy } from '@angular/core';
 import { Group } from '../group';
 import { MatchInformation } from '../matchInformation';
-import { Linkage } from '../linkage';
 import { Player } from '../player';
 import { MatchesService } from '../matches.service';
 import { forkJoin, Observable, Subscription } from 'rxjs';
@@ -16,7 +15,6 @@ export class MatchListsComponent implements OnInit, OnDestroy {
 
   @Input() group: Group;
   @Input() players: Player[];
-  @Input() linkages: Linkage[];
 
   eachPlayers: Player[] = [];
   matchInformations: MatchInformation[] = [];
@@ -36,7 +34,7 @@ export class MatchListsComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    this.getPlayersOfEachGroups(this.group.id);
+    this.eachPlayers = this.getPlayersOfEachGroups();
     // 初期の画面描画時に1回対戦情報を取得する
     this.initialGetMatchInformations();
 
@@ -53,24 +51,13 @@ export class MatchListsComponent implements OnInit, OnDestroy {
     }
   }
 
-  getPlayersOfEachGroups(groupId: number): void {
-    let targetLinkages = [];
-
-    targetLinkages = this.linkages.filter((linkage) => {
-      if (linkage.groupId == groupId) {
-        return linkage;
-      };
+  getPlayersOfEachGroups(): Player[] {
+    let eachPlayers = this.players.filter((player) => {
+      return player.groupId == this.group.id;
     });
+    this.sortArray(eachPlayers, 'asc');
 
-    targetLinkages.forEach((linkage) => {
-      this.players.forEach((player) => {
-        if (player.id == linkage['playerId']) {
-          this.eachPlayers.push(player);
-        }
-      });
-    });
-
-    this.sortArray(this.eachPlayers, 'asc');
+    return eachPlayers;
   }
 
   initialGetMatchInformations(): void {
@@ -87,10 +74,10 @@ export class MatchListsComponent implements OnInit, OnDestroy {
           this.setDefaultResult();
           this.updateMatches();
 
-          const targetGroups = this.getPlayerAbstainedGroups();
+          const targetGroups = this.playersService.playerAbstainedGroups;
           // この対戦リストコンポーネントが一番最後のグループのものである場合のみ棄権プレイヤーIDと棄権処理実行フラグをリセット
           if (this.group.id == targetGroups[targetGroups.length - 1]) {
-            this.playersService.clearAbstainedPlayerIds();
+            this.playersService.clearPlayerAbstainedGroups();
             this.playersService.isExecuteAbstention = false;
           }
         }
@@ -151,6 +138,7 @@ export class MatchListsComponent implements OnInit, OnDestroy {
       id: 999,
       name: 'dummy',
       otherItems: {},
+      groupId: this.group.id,
       gains: null,
       losts: null,
       points: null,
@@ -452,20 +440,6 @@ export class MatchListsComponent implements OnInit, OnDestroy {
           this.matchesService.sendMatcheInformations();
         }
       )
-  }
-
-  getPlayerAbstainedGroups(): number[] {
-    let targetGroupIds = [];
-    this.playersService.abstainedPlayerIds.forEach((playerId) => {
-      const targetLinkage = this.linkages.find((linkage) => {
-        return linkage.playerId == playerId;
-      });
-      if (targetLinkage) {
-        targetGroupIds.push(targetLinkage.groupId);
-      }
-    });
-
-    return targetGroupIds;
   }
 
   isContainedAbstainedPlayer(matchInformation: MatchInformation): boolean {

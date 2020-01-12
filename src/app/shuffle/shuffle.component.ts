@@ -1,26 +1,24 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material';
 import { PlayersService } from '../players.service';
 import { GroupsService } from '../groups.service';
-import { Group } from '../group';
-import { Linkage } from '../linkage';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-shuffle',
   templateUrl: './shuffle.component.html',
   styleUrls: ['./shuffle.component.css']
 })
-export class ShuffleComponent implements OnInit {
+export class ShuffleComponent implements OnInit, OnDestroy {
 
   totalPlayers: number; // 合計参加人数
-  groupLeagues: any[]; // グループリーグ
+  groups: any[]; // グループ
   inputInformations: any[] // 入力されたプレイヤー情報(shuffleコンポーネント内での保持用)
-  linkages: any[]; // プレイヤーとグループの紐付け情報
   shuffleCount: number // シャッフル回数(手動の場合のみ)
   shuffleMethod: number // シャッフル方法(自動:0, 手動:1)
   autoShuffleMessage: string // 自動シャッフル時の完了メッセージ
+  subscriptions: Subscription[] = [];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -29,9 +27,8 @@ export class ShuffleComponent implements OnInit {
     private groupsService: GroupsService,
     private router: Router,
   ) {
-    this.groupLeagues = [];
+    this.groups = [];
     this.inputInformations = Array.from(this.data.inputInformations); // inputInformationsのDeep Copy
-    this.linkages = [];
     this.shuffleCount = 0;
     this.shuffleMethod = 0;
     this.autoShuffleMessage = null;
@@ -42,11 +39,17 @@ export class ShuffleComponent implements OnInit {
     this.inputInformations;
   }
 
+  ngOnDestroy() {
+    if (this.subscriptions) {
+      this.subscriptions.forEach(sub => sub.unsubscribe());
+    }
+  }
+
   createGroups(numbers: number): void {
-    this.groupLeagues = [];
+    this.groups = [];
     // 空のグループ(numberOfPlayers=0)を生成する
     for (let i = 0; i < numbers; i++) {
-      this.groupLeagues.push({ id: i + 1, name: `グループ${this.outputAlphabet(i)}`, numberOfPlayers: 0 })
+      this.groups.push({ id: i + 1, name: `グループ${this.outputAlphabet(i)}`, numberOfPlayers: 0 })
     }
 
     this.setNumberOfPlayers();
@@ -62,18 +65,18 @@ export class ShuffleComponent implements OnInit {
     // 空のグループに1人ずつ順番に席を設定していく
     // countがtotalPlayersになったら終了
     while (count < this.totalPlayers) {
-      this.groupLeagues.forEach((groupLeague) => {
+      this.groups.forEach((group) => {
         if (count == this.totalPlayers) {
           return true;
         }
-        groupLeague['numberOfPlayers']++;
+        group['numberOfPlayers']++;
         count++;
       });
     }
   }
 
   isGroupsCreated(): boolean {
-    return this.groupLeagues.length > 0;
+    return this.groups.length > 0;
   }
 
   manualShuffle(): void {
@@ -114,9 +117,8 @@ export class ShuffleComponent implements OnInit {
     // プレイヤーとグループを紐づける
     this.allocatePlayersToGroups();
     // 各種情報をDBへ登録する
-    this.registPlayers();
-    this.registGroups();
-    this.registLinkages();
+    this.registerPlayers();
+    this.registerGroups();
     // ダイアログを閉じてリーグ表ページへ遷移する
     this.matDialogRef.close();
     this.router.navigate(['league']);
@@ -125,49 +127,30 @@ export class ShuffleComponent implements OnInit {
 
   allocatePlayersToGroups(): void {
     let index = 0;
-
     // シャッフル処理終了後のプレイヤー情報配列の先頭から一人ずつグループと紐づけていく
-    this.groupLeagues.forEach((groupLeague) => {
-      [...Array(groupLeague.numberOfPlayers)].map(() => {
-        this.linkages.push({
-          id: index + 1,
-          playerId: this.inputInformations[index].id,
-          groupId: groupLeague.id
-        });
+    this.groups.forEach((group) => {
+      [...Array(group.numberOfPlayers)].map(() => {
+        this.inputInformations[index].groupId = group.id;
         index++;
       });
     });
   }
 
-  registPlayers(): void {
-    forkJoin(this.playersService.executeRegisterPlayers(this.data.inputInformations))
-      .subscribe(
-        () => {
-          this.playersService.isPlayersRegistered = true;
-        }
-      );
+  registerPlayers(): void {
+    this.subscriptions.push(
+      forkJoin(this.playersService.executeRegisterPlayers(this.data.inputInformations))
+        .subscribe(
+          () => {
+            this.playersService.isPlayersRegistered = true;
+          })
+    );
   }
 
-  registGroups(): void {
-    this.groupLeagues.forEach((groupLeague) => {
-      this.groupsService.registGroup(groupLeague as Group)
-        .subscribe(
-          (group) => {
-            // 成功時の処理
-          }
-        );
-    });
-  }
-
-  registLinkages(): void {
-    this.linkages.forEach((linkage) => {
-      this.groupsService.registLinkage(linkage as Linkage)
-        .subscribe(
-          (linkages) => {
-            // 成功時の処理
-          }
-        );
-    });
+  registerGroups(): void {
+    this.subscriptions.push(
+      forkJoin(this.groupsService.executeRegisterGroups(this.groups))
+        .subscribe(() => { })
+    );
   }
 
 }
