@@ -1,17 +1,16 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material';
 import { PlayersService } from '../players.service';
 import { GroupsService } from '../groups.service';
-import { Group } from '../group';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-shuffle',
   templateUrl: './shuffle.component.html',
   styleUrls: ['./shuffle.component.css']
 })
-export class ShuffleComponent implements OnInit {
+export class ShuffleComponent implements OnInit, OnDestroy {
 
   totalPlayers: number; // 合計参加人数
   groups: any[]; // グループ
@@ -19,6 +18,7 @@ export class ShuffleComponent implements OnInit {
   shuffleCount: number // シャッフル回数(手動の場合のみ)
   shuffleMethod: number // シャッフル方法(自動:0, 手動:1)
   autoShuffleMessage: string // 自動シャッフル時の完了メッセージ
+  subscriptions: Subscription[] = [];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -37,6 +37,12 @@ export class ShuffleComponent implements OnInit {
   ngOnInit() {
     this.totalPlayers = this.inputInformations.length;
     this.inputInformations;
+  }
+
+  ngOnDestroy() {
+    if (this.subscriptions) {
+      this.subscriptions.forEach(sub => sub.unsubscribe());
+    }
   }
 
   createGroups(numbers: number): void {
@@ -131,23 +137,20 @@ export class ShuffleComponent implements OnInit {
   }
 
   registerPlayers(): void {
-    forkJoin(this.playersService.executeRegisterPlayers(this.data.inputInformations))
-      .subscribe(
-        () => {
-          this.playersService.isPlayersRegistered = true;
-        }
-      );
+    this.subscriptions.push(
+      forkJoin(this.playersService.executeRegisterPlayers(this.data.inputInformations))
+        .subscribe(
+          () => {
+            this.playersService.isPlayersRegistered = true;
+          })
+    );
   }
 
   registerGroups(): void {
-    this.groups.forEach((group) => {
-      this.groupsService.registerGroup(group as Group)
-        .subscribe(
-          (group) => {
-            // 成功時の処理
-          }
-        );
-    });
+    this.subscriptions.push(
+      forkJoin(this.groupsService.executeRegisterGroups(this.groups))
+        .subscribe(() => { })
+    );
   }
 
 }

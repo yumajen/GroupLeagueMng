@@ -25,8 +25,8 @@ export class GroupsService {
       );
   }
 
-  registerGroup(groupLeague: Group): Observable<Group> {
-    return this.http.post<Group>(this.groupsUrl, groupLeague, this.httpOptions)
+  registerGroup(group: Group): Observable<Group> {
+    return this.http.post<Group>(this.groupsUrl, group, this.httpOptions)
       .pipe(
         catchError(this.handleError<Group>('registGroup'))
       );
@@ -37,6 +37,14 @@ export class GroupsService {
       console.error(error);
       return of(result as T);
     };
+  }
+
+  executeRegisterGroups(registerParams: any): Observable<Group>[] {
+    let observables = registerParams.map((param) => {
+      return this.registerGroup(param as Group);
+    });
+
+    return observables;
   }
 
 }
