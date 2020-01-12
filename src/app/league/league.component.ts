@@ -2,7 +2,6 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { Player } from '../player';
 import { Group } from '../group';
-import { Linkage } from '../linkage';
 import { PlayersService } from '../players.service';
 import { GroupsService } from '../groups.service';
 import { MatchesService } from '../matches.service';
@@ -29,7 +28,6 @@ export class LeagueComponent implements OnInit, OnDestroy {
 
   players: Player[];
   groups: Group[];
-  linkages: Linkage[];
   matchInformations: MatchInformation[];
   matchInformations$: Observable<MatchInformation[]>;
   subscription: Subscription;
@@ -58,7 +56,7 @@ export class LeagueComponent implements OnInit, OnDestroy {
     this.subscription = this.matchInformations$.subscribe(info$ => {
       this.isLeaguesUpdated = true;
       this.matchInformations = info$;
-      this.getLinkages();
+      this.afterUpdateProcessing();
     });
   }
 
@@ -80,29 +78,23 @@ export class LeagueComponent implements OnInit, OnDestroy {
     this.groupsService.getGroups().subscribe(
       (groups) => {
         this.groups = groups;
-        this.getLinkages();
       }
     );
   }
 
-  // TODO: Linkageの使用はやめる(playerに直接groupIdを持たせる)
-  getLinkages(): void {
-    this.groupsService.getLinkages().subscribe(
-      (linkages) => {
-        this.linkages = linkages;
-        if (this.isLeaguesUpdated || this.playersService.isExecuteAbstention) {
-          this.calculateGrades();
-          this.isLeaguesUpdated = false;
-          this.matchesService.clearMatchUpdatedGroups();
-        }
-      }
-    );
+  afterUpdateProcessing(): void {
+    if (this.isLeaguesUpdated || this.playersService.isExecuteAbstention) {
+      this.calculateGrades();
+      this.isLeaguesUpdated = false;
+      this.matchesService.clearMatchUpdatedGroups();
+    }
   }
 
   initialGetMatchInformations(): void {
     this.matchesService.getMatcheInformations().subscribe(
       (matchInformations) => {
         this.matchInformations = matchInformations;
+        this.afterUpdateProcessing();
       }
     );
   }
@@ -115,23 +107,9 @@ export class LeagueComponent implements OnInit, OnDestroy {
   }
 
   getPlayersOfEachGroups(groupId: number): Player[] {
-    let targetLinkages = [];
-    let eachPlayers = [];
-
-    targetLinkages = this.linkages.filter((linkage) => {
-      if (linkage.groupId == groupId) {
-        return linkage;
-      };
+    let eachPlayers = this.players.filter((player) => {
+      return player.groupId == groupId;
     });
-
-    targetLinkages.forEach((linkage) => {
-      this.players.forEach((player) => {
-        if (player.id == linkage['playerId']) {
-          eachPlayers.push(player);
-        }
-      });
-    });
-
     this.sortArray(eachPlayers, 'asc');
 
     return eachPlayers;
@@ -174,14 +152,19 @@ export class LeagueComponent implements OnInit, OnDestroy {
   }
 
   updateLeagues(): void {
-    if (this.matchesService.isUpdatePraramsSet || this.isCalSettingChanged) {
+    if (this.matchesService.isUpdatePraramsSet) {
       forkJoin(this.matchesService.executeUpdateMatches())
         .subscribe(
           () => {
             this.matchesService.sendMatcheInformations();
-            this.isCalSettingChanged = false;
           }
         )
+    } else if (this.isCalSettingChanged) {
+      // 計算条件を変更しただけでは対戦情報の変更がないため、別途成績計算実行関数を呼び出す必要がある
+      this.groups.forEach(group => this.matchesService.setMatchUpdatedGroups(group.id));
+      this.isCalSettingChanged = false;
+      this.isLeaguesUpdated = true;
+      this.afterUpdateProcessing();
     }
   }
 
@@ -189,8 +172,10 @@ export class LeagueComponent implements OnInit, OnDestroy {
     let updatePlayerInfo: any[] = []; // プレイヤー情報更新用パラメータ配列
 
     // 対戦情報に変更があったグループのみを成績計算の対象にする
-    const targetGroupIds = this.playersService.isExecuteAbstention ? this.getPlayerAbstainedGroups()
+    const targetGroupIds = this.playersService.isExecuteAbstention
+      ? this.playersService.playerAbstainedGroups
       : this.matchesService.matchUpdatedGroups;
+
     targetGroupIds.forEach((groupId) => {
       const eachPlayers = this.getPlayersOfEachGroups(groupId);
 
@@ -462,19 +447,4 @@ export class LeagueComponent implements OnInit, OnDestroy {
     });
   }
 
-  getPlayerAbstainedGroups(): number[] {
-    let targetGroupIds = [];
-    this.playersService.abstainedPlayerIds.forEach((playerId) => {
-      const targetLinkage = this.linkages.find((linkage) => {
-        return linkage.playerId == playerId;
-      });
-      if (targetLinkage) {
-        if (targetGroupIds.indexOf(targetLinkage.groupId) == -1) {
-          targetGroupIds.push(targetLinkage.groupId);
-        }
-      }
-    });
-
-    return targetGroupIds;
-  }
 }

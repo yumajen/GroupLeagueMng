@@ -5,16 +5,16 @@
     <div class="cond-form" [class.inactive]="isGroupsCreated()">
         <label>グループ数：</label>
         <!-- TODO: グループ生成後のtab操作によるフォーカス無効処理を追加する -->
-        <input type="text" #groups>
+        <input type="text" #numberOfGroups>
     </div>
     <div class="create-group" [class.inactive]="isGroupsCreated()">
         <!-- TODO: グループ生成後のtab操作によるフォーカス無効処理を追加する -->
-        <button (click)="createGroups(groups.value)">グループを生成</button>
+        <button (click)="createGroups(numberOfGroups.value)">グループを生成</button>
     </div>
-    <div *ngIf="groupLeagues.length > 0" class="created-groups">
+    <div *ngIf="groups" class="created-groups">
         <p>以下のグループを生成しました。</p>
         <ul>
-            <li *ngFor="let group of groupLeagues">
+            <li *ngFor="let group of groups">
                 {{group.name}}：{{group.numberOfPlayers}}人
             </li>
         </ul>
