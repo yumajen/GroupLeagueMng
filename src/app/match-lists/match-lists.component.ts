@@ -81,6 +81,8 @@ export class MatchListsComponent implements OnInit, OnDestroy {
             this.playersService.isExecuteAbstention = false;
           }
         }
+        // ボタン押下状態を再取得する
+        this.reacquireButtonStatus();
       }
     );
   }
@@ -277,7 +279,7 @@ export class MatchListsComponent implements OnInit, OnDestroy {
     }
 
     // プレイヤー1, 2共に得点の入力がある場合にボタンを押下しても結果の登録を行わない
-    if (buttonIndex && isScoreFilled) {
+    if (buttonIndex != undefined && isScoreFilled) {
       return;
     }
 
@@ -324,6 +326,19 @@ export class MatchListsComponent implements OnInit, OnDestroy {
       }
     )
     this.sortArray(this.pushedButtons, 'asc');
+  }
+
+  reacquireButtonStatus(): void {
+    // 勝敗が決まっている対戦組合わせのみ抽出
+    const settledMatchInformations = this.matchInformations.filter((info) => {
+      return info.winnerId || info.isDraw;
+    });
+    settledMatchInformations.forEach((info) => {
+      const buttonIndex = info.isDraw ? 2 : (info.winnerId == info.match[0] ? 0 : 1);
+      const isScoreFilled = !!info.score1 && !!info.score2;
+      this.changeButtonStatus(info.id, buttonIndex, isScoreFilled);
+    });
+
   }
 
   setResult(matchInfo: MatchInformation, score1: number, score2: number, isScoreFilled: boolean, playerId?: number): void {
